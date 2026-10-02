@@ -1,0 +1,6 @@
+{
+  "name": "AeroPlan - Autonomous Agentic Travel Planner",
+  "description": "Autonomous budget-optimized travel planner with real-time flight and hotel querying, agentic reflection, and structured JSON itinerary generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
