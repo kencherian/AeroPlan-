@@ -17,7 +17,7 @@ import { SchemaDocumentation } from './components/SchemaDocumentation.tsx';
 import { FlightRouteMap } from './components/FlightRouteMap.tsx';
 import { AgentExecutionResult, PresetScenario } from './types.ts';
 import { PRESET_SCENARIOS } from './data/presets.ts';
-import { Bot, Sparkles, Terminal, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Feather, Heart, Sparkles, Terminal, ArrowRight, Coffee } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'planner' | 'map' | 'tracer' | 'tools' | 'schema'>('planner');
@@ -57,11 +57,11 @@ export default function App() {
       setAgentResult(data);
 
       if (data.output.status === 'error') {
-        setErrorMessage(data.output.error_message || 'Agent failed to find viable combination.');
+        setErrorMessage(data.output.error_message || 'A gentle adjustment is recommended.');
       }
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Failed to reach agent execution service.');
+      setErrorMessage(err.message || 'We could not reach the travel companion service just now.');
     } finally {
       setIsLoading(false);
     }
@@ -87,27 +87,27 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F9F6F0] text-[#3E3832] flex flex-col font-sans">
       <Header
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         onResetToSample={handleResetToSample}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
         
-        {/* Intro Banner */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6 relative overflow-hidden">
+        {/* Warm Sanctuary Intro Banner */}
+        <div className="bg-white border border-[#EFECE6] rounded-2xl p-7 relative overflow-hidden shadow-sm">
           <div className="relative z-10 max-w-3xl">
-            <div className="flex items-center gap-2 mb-2 text-xs font-mono text-indigo-400">
-              <Bot className="w-4 h-4" />
-              <span>Autonomous Agent Workflow · Real-Time Flight & Hotel APIs</span>
+            <div className="flex items-center gap-2 mb-2.5 text-xs font-mono text-[#73836F]">
+              <Feather className="w-4 h-4" />
+              <span>Your Gentle & Reassuring Travel Companion</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2">
-              Budget-Optimized Autonomous Itinerary Engine
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#3E3832] mb-2">
+              Crafting Your Peaceful, Perfectly Balanced Getaway
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Iteratively queries live flight options via <code className="text-slate-300 font-mono">search_flights</code>, computes remaining accommodation ceilings, queries <code className="text-slate-300 font-mono">search_hotels</code>, and performs agentic reflection and parameter self-correction to satisfy strict budget constraints.
+            <p className="text-xs sm:text-sm text-[#8C8279] leading-relaxed">
+              We lovingly take the stress out of planning. By calmly exploring live flight options, calculating your comfortable accommodation ceiling, and mindfully self-correcting for any deficits, we ensure every detail brings you joy and complete peace of mind.
             </p>
           </div>
         </div>
@@ -137,27 +137,27 @@ export default function App() {
           <div className="space-y-6">
             {/* Quick Status Bar */}
             {agentResult && (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="bg-white border border-[#EFECE6] rounded-2xl p-4.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${agentResult.output.status === 'success' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+                  <div className={`w-3 h-3 rounded-full ${agentResult.output.status === 'success' ? 'bg-[#8A9A86] animate-pulse' : 'bg-[#D98880]'}`} />
                   <div>
-                    <span className="text-xs font-semibold text-slate-200">
+                    <span className="text-xs font-semibold text-[#3E3832]">
                       {agentResult.output.status === 'success'
-                        ? 'Mathematically Viable Plan Formulated'
-                        : 'Budget Deficit Detected (Failure State)'}
+                        ? 'A Restful, Harmonious Itinerary Has Been Prepared With Love'
+                        : 'A Small Adjustment is Recommended for Comfort'}
                     </span>
-                    <span className="text-xs text-slate-400 block font-mono">
-                      {agentResult.traces.length} Reasoning & Tool Steps Executed · {agentResult.executionTimeMs}ms
+                    <span className="text-xs text-[#8C8279] block font-mono">
+                      {agentResult.traces.length} Mindful Exploration Steps · {agentResult.executionTimeMs}ms
                     </span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setActiveTab('tracer')}
-                  className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition-colors whitespace-nowrap"
+                  className="text-xs font-medium text-[#73836F] hover:text-[#556B52] flex items-center gap-1.5 transition-colors whitespace-nowrap"
                 >
-                  <Terminal className="w-3.5 h-3.5" />
-                  View Full Step-by-Step Reasoning Trace
+                  <Sparkles className="w-3.5 h-3.5 text-[#D98880]" />
+                  Follow Our Care Trace
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -220,11 +220,11 @@ export default function App() {
         {activeTab === 'map' && (
           <div className="space-y-4">
             <div>
-              <h2 className="text-base font-semibold text-slate-200">
-                Interactive Flight Path & Geodesic Navigation
+              <h2 className="text-base font-semibold text-[#3E3832]">
+                Your Peaceful Flight Journey Across the Globe
               </h2>
-              <p className="text-xs text-slate-400">
-                Spherical great-circle route plotting between origin ({origin}) and destination ({destination}) rendered with D3.js.
+              <p className="text-xs text-[#8C8279]">
+                Visualizing the gentle spherical Great Circle path between {origin} and {destination}.
               </p>
             </div>
 
@@ -239,15 +239,13 @@ export default function App() {
         {/* Tab 2: Reasoning Trace */}
         {activeTab === 'tracer' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-slate-200">
-                  Agentic Step-by-Step Reasoning Trace
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Detailed inspection of tool invocations, ceiling calculations, and self-correction reflection loops.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-base font-semibold text-[#3E3832]">
+                Thoughtful Steps & Peaceful Harmonization
+              </h2>
+              <p className="text-xs text-[#8C8279]">
+                See how we quietly looked out for your budget, adjusted parameters, and kept everything serene.
+              </p>
             </div>
 
             <AgentExecutionTracer
@@ -269,16 +267,16 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      {/* Warm Footer */}
+      <footer className="border-t border-[#EFECE6] bg-white py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8C8279]">
           <div className="flex items-center gap-2">
-            <span>AeroPlan Autonomous Planner</span>
+            <span>AeroPlan Sanctuary Companion</span>
             <span aria-hidden="true">·</span>
-            <span>Iterative Tool Execution & Self-Correction</span>
+            <span>Crafted with love, calm reflection & peace of mind</span>
           </div>
           <div className="flex items-center gap-4">
-            <span>Response MIME: application/json</span>
+            <span>Response: application/json</span>
             <span aria-hidden="true">·</span>
             <span>Model: models/gemini-3.8-flash</span>
           </div>

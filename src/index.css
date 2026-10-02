@@ -1,7 +1,19 @@
 @import "tailwindcss";
 
+:root {
+  --bg-primary: #F9F6F0;       /* Warm linen cream */
+  --bg-card: #FFFFFF;          /* Pure soft white for cards */
+  --text-main: #3E3832;        /* Deep, soft warm charcoal */
+  --text-muted: #8C8279;       /* Muted taupe */
+  --accent-sage: #8A9A86;      /* Calm, comforting green */
+  --accent-peach: #E0A996;     /* Soft warm highlight */
+  --border-color: #EFECE6;     /* Subtle soft divider */
+}
+
 @layer base {
   body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
@@ -10,3 +22,4 @@
     font-variant-numeric: tabular-nums;
   }
 }
+

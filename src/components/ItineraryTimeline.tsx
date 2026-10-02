@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Coffee, MapPin, Feather, Sun, Sparkles } from 'lucide-react';
 import { DailyItineraryDay } from '../types.ts';
 
 interface ItineraryTimelineProps {
@@ -16,35 +16,35 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ days }) =>
   const activeDay = days.find((d) => d.day_number === selectedDay) || days[0];
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-800 gap-2">
+    <div className="bg-white border border-[#EFECE6] rounded-2xl p-6 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-[#EFECE6] gap-2">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Comprehensive Daily Itinerary ({days.length} Days)
+          <Sun className="w-4 h-4 text-[#D98880]" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8C8279]">
+            Your Gentle Daily Rhythm ({days.length} Days)
           </h3>
         </div>
-        <div className="text-xs text-slate-400">
-          Curated around confirmed arrival & lodging anchors
+        <div className="text-xs text-[#8C8279]">
+          Designed for slow exploration, delightful meals & restorative rest
         </div>
       </div>
 
       {/* Day Selector Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-4 scrollbar-none border-b border-slate-800/60">
+      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-5 scrollbar-none border-b border-[#EFECE6]">
         {days.map((day) => {
           const isSelected = day.day_number === selectedDay;
           return (
             <button
               key={day.day_number}
               onClick={() => setSelectedDay(day.day_number)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 ${
+              className={`px-3.5 py-2 text-xs font-medium rounded-xl transition-all whitespace-nowrap flex items-center gap-2 ${
                 isSelected
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-[#7E907B] text-white shadow-xs font-semibold'
+                  : 'bg-[#F9F6F0] text-[#8C8279] hover:text-[#3E3832] border border-[#EFECE6]'
               }`}
             >
-              <span className="font-semibold">Day {day.day_number}</span>
-              <span className={`text-[10px] font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>
+              <span>Day {day.day_number}</span>
+              <span className={`text-[10px] font-mono ${isSelected ? 'text-[#E8EFE7]' : 'text-[#8C8279]'}`}>
                 {day.date}
               </span>
             </button>
@@ -53,42 +53,42 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({ days }) =>
       </div>
 
       {/* Active Day Agenda */}
-      <div className="bg-slate-950/60 rounded-xl border border-slate-800 p-4">
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800/80">
+      <div className="bg-[#F9F6F0] rounded-xl border border-[#EFECE6] p-5">
+        <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#E8E4DC]">
           <div>
-            <h4 className="text-sm font-semibold text-slate-200">
-              Day {activeDay.day_number} Schedule
+            <h4 className="text-sm font-semibold text-[#3E3832]">
+              Day {activeDay.day_number} Experiences
             </h4>
-            <span className="text-xs text-slate-400 font-mono">
+            <span className="text-xs text-[#8C8279] font-mono">
               Date: {activeDay.date}
             </span>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
-            {activeDay.agenda.length} Scheduled Activities
+          <span className="text-xs text-[#8C8279] font-mono">
+            {activeDay.agenda.length} Mindful Stops
           </span>
         </div>
 
         {/* Timeline Items */}
-        <div className="space-y-3 relative pl-6 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+        <div className="space-y-3 relative pl-6 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-[#DED9D0]">
           {activeDay.agenda.map((item, idx) => {
-            const timeSlots = ['Morning', 'Midday', 'Afternoon', 'Evening', 'Night'];
-            const slotName = timeSlots[idx] || `Activity ${idx + 1}`;
+            const timeSlots = ['Morning Awakening', 'Gentle Afternoon', 'Golden Hour & Sunset', 'Peaceful Evening', 'Night Rest'];
+            const slotName = timeSlots[idx] || `Part ${idx + 1}`;
 
             return (
               <div key={idx} className="relative group">
                 {/* Node marker */}
-                <div className="absolute -left-6 top-1.5 w-2.5 h-2.5 rounded-full bg-slate-900 border-2 border-indigo-400" />
+                <div className="absolute -left-6 top-1.5 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#8A9A86]" />
                 
-                <div className="bg-slate-900 border border-slate-800/80 rounded-lg p-3 hover:border-slate-700 transition-colors">
+                <div className="bg-white border border-[#EFECE6] rounded-xl p-3.5 hover:border-[#DED9D0] transition-all shadow-2xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-mono font-medium text-indigo-300">
+                    <span className="text-[11px] font-mono font-medium text-[#73836F]">
                       {slotName}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      Step {idx + 1}
+                    <span className="text-[10px] text-[#8C8279] font-mono">
+                      Stop {idx + 1}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-[#3E3832] leading-relaxed">
                     {item}
                   </p>
                 </div>

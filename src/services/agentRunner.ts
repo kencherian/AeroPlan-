@@ -98,11 +98,11 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
   const checkOutDate = new Date(checkOut);
   const nights = Math.max(1, Math.round((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
 
-  // STEP 1: Constraint Parsing
+  // STEP 1: Thoughtful Listening
   addTrace({
     type: 'constraint_parsing',
-    title: '1. Constraint Parsing',
-    description: `Parsed trip constraints: ${origin} → ${destination} (${destCity}), ${departureDate} to ${returnDate} (${nights} nights). Strict budget: $${totalBudget.toLocaleString()} USD.`,
+    title: '1. Thoughtful Listening & Welcoming Your Journey',
+    description: `Gently noting your travel wishes: from ${origin} to ${destCity} (${destination}), across ${departureDate} to ${returnDate} (${nights} peaceful nights). Our cozy spending goal together is $${totalBudget.toLocaleString()} USD.`,
     details: {
       params: { origin, destination, departureDate, returnDate, totalBudget, nights, destCity },
       budget_math: {
@@ -116,11 +116,11 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     status: 'completed',
   });
 
-  // STEP 2: First Flight Tool Invocation
+  // STEP 2: Exploring Flights with Care
   addTrace({
     type: 'flight_search',
-    title: '2. Sequential Tool Execution: search_flights',
-    description: `Invoking search_flights(origin="${origin}", destination="${destination}", departure_date="${departureDate}", return_date="${returnDate}")`,
+    title: '2. Exploring Flights with Care: search_flights',
+    description: `Quietly checking gentle, reliable flight paths from ${origin} to ${destination} for ${departureDate} to ${returnDate}...`,
     details: {
       tool_name: 'search_flights',
       params: { origin, destination, departure_date: departureDate, return_date: returnDate },
@@ -136,10 +136,10 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
   });
 
   if (!flightResult.success || flightResult.flights.length === 0) {
-    const deficitMsg = `No commercial flights available for route ${origin} → ${destination} on selected dates.`;
+    const deficitMsg = `We gently checked all airline routes between ${origin} and ${destination}, but none are currently running on your chosen dates.`;
     addTrace({
       type: 'failure_deficit',
-      title: 'Tool Execution Failure',
+      title: 'Gentle Notice: Route Unavailable',
       description: deficitMsg,
       status: 'error',
     });
@@ -155,7 +155,6 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
   }
 
   // Evaluate candidate flights in order of preference (Standard preferred first if budget permits, else Saver)
-  // Let's test standard flight first to demonstrate realistic agent reflection and self-correction!
   let selectedFlight = flightResult.flights.find(f => f.tier === 'standard_economy') || flightResult.flights[0];
   let attemptNumber = 1;
 
@@ -165,8 +164,6 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
   let finalRemaining = 0;
   let finalSpent = 0;
 
-  // Agentic Loop / Self-Correction Iteration
-  // We examine available flights and hotel tiers
   const flightsToTry = [
     flightResult.flights.find(f => f.tier === 'standard_economy'),
     flightResult.flights.find(f => f.tier === 'economy_saver'),
@@ -179,14 +176,14 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     if (candidateFlight.price >= totalBudget) {
       addTrace({
         type: 'agentic_reflection',
-        title: `Agentic Reflection (Attempt ${attemptNumber})`,
-        description: `Candidate flight ${candidateFlight.airline} (${candidateFlight.flight_number}) costs $${candidateFlight.price}, leaving $${totalBudget - candidateFlight.price} for accommodation. Immediate deficit detected.`,
+        title: `Calm Reflection & Mindful Adjusting (Step ${attemptNumber})`,
+        description: `This flight with ${candidateFlight.airline} is $${candidateFlight.price}, which uses our entire cozy spending goal. Don't worry at all—I'm softly looking for a lighter, more economical flight so you have ample funds for relaxing accommodations.`,
         details: {
           is_correction: true,
           attempt_number: attemptNumber,
           reflection_notes: [
-            `Flight price $${candidateFlight.price} exceeds or absorbs allowable total budget ($${totalBudget}).`,
-            `Attempting cheaper flight alternative...`,
+            `Flight price $${candidateFlight.price} leaves little room for cozy lodging within our $${totalBudget} goal.`,
+            `Gently switching to an alternative flight option for your peace of mind...`,
           ],
           budget_math: {
             total_budget: totalBudget,
@@ -207,8 +204,8 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
 
     addTrace({
       type: 'budget_deduction',
-      title: `3. Budget Deduction & Ceiling Calculation (Attempt ${attemptNumber})`,
-      description: `Secured candidate flight ${candidateFlight.airline} for $${candidateFlight.price}. Deducted from total budget ($${totalBudget} - $${candidateFlight.price} = $${remainingForHotel} remaining). Nightly accommodation ceiling: $${maxNightlyCeiling}/night for ${nights} nights.`,
+      title: `3. Thoughtful Lodging Allowance (Step ${attemptNumber})`,
+      description: `We've spotted a lovely flight with ${candidateFlight.airline} for $${candidateFlight.price}. This leaves a comfortable $${remainingForHotel} for your retreat accommodations (a cozy ceiling of $${maxNightlyCeiling}/night across ${nights} nights).`,
       details: {
         budget_math: {
           total_budget: totalBudget,
@@ -224,8 +221,8 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     // STEP 4: Hotel Tool Invocation
     addTrace({
       type: 'hotel_search',
-      title: `4. Sequential Tool Execution: search_hotels (Attempt ${attemptNumber})`,
-      description: `Invoking search_hotels(city="${destCity}", check_in="${checkIn}", check_out="${checkOut}", max_price_per_night=${maxNightlyCeiling})`,
+      title: `4. Finding Peaceful Accommodations: search_hotels (Step ${attemptNumber})`,
+      description: `Looking for peaceful, welcoming places to stay in ${destCity} up to $${maxNightlyCeiling}/night...`,
       details: {
         tool_name: 'search_hotels',
         params: { city: destCity, check_in: checkIn, check_out: checkOut, max_price_per_night: maxNightlyCeiling },
@@ -248,16 +245,16 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
 
       addTrace({
         type: 'agentic_reflection',
-        title: `Agentic Reflection: Budget Deficit Detected (Attempt ${attemptNumber})`,
-        description: `Combined cost of flight ($${candidateFlight.price}) + minimum hotel in ${destCity} ($${minHotelTotal}) is $${candidateFlight.price + minHotelTotal}, exceeding the $${totalBudget} budget by $${deficit}. DO NOT generate final itinerary yet. Initiating self-correction.`,
+        title: `Gentle Self-Correction: Harmonizing the Budget (Step ${attemptNumber})`,
+        description: `The resting places currently available in ${destCity} are just a gentle nudge above our current nightly allowance. Please rest easy—I'm quietly adjusting parameters to see if a smarter flight saver or alternate tier brings everything into peaceful alignment.`,
         details: {
           is_correction: true,
           attempt_number: attemptNumber,
           reflection_notes: [
-            `Zero hotels available in ${destCity} under calculated ceiling of $${maxNightlyCeiling}/night.`,
-            `Cheapest available room rate is $${minRate}/night ($${minHotelTotal} total).`,
-            `Combined deficit: $${deficit} USD over budget.`,
-            `Self-Correction Strategy: Re-invoke tools with lower-tier economy flight or alternate parameters.`
+            `No hotels found under the initial $${maxNightlyCeiling}/night ceiling.`,
+            `Comfortable rooms start around $${minRate}/night ($${minHotelTotal} total).`,
+            `Difference: $${deficit} USD from current spending goal.`,
+            `Harmonizing step: Finding a more economical flight to free up more room for your resting stay.`
           ],
           budget_math: {
             total_budget: totalBudget,
@@ -278,7 +275,6 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     }
 
     // A viable hotel was found within budget!
-    // Pick the best available hotel within the ceiling
     const chosenHotel = hotelResult.hotels[0];
     const totalSpent = candidateFlight.price + chosenHotel.total_cost;
     const remainingFunds = totalBudget - totalSpent;
@@ -292,8 +288,8 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
 
       addTrace({
         type: 'plan_compilation',
-        title: 'Agentic Verification & Mathematical Convergence',
-        description: `Found mathematically viable pairing: Flight ${finalFlight.airline} ($${finalFlight.price}) + Hotel ${finalHotel.name} ($${finalHotel.total_cost}) = Total $${finalSpent} Spent with $${finalRemaining} surplus funds.`,
+        title: '5. A Peaceful Plan Has Blossomed Beautifully',
+        description: `We've found a wonderful, stress-free harmony: your ${finalFlight.airline} flight ($${finalFlight.price}) paired with ${finalHotel.name} ($${finalHotel.total_cost}). That leaves a cozy $${finalRemaining} in your pocket for warm meals, artisanal coffee, and peaceful strolls!`,
         details: {
           budget_math: {
             total_budget: totalBudget,
@@ -306,8 +302,8 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
             net_balance: finalRemaining,
           },
           reflection_notes: [
-            `Total flight + accommodation satisfies strict budget condition ($${finalSpent} <= $${totalBudget}).`,
-            `Generating comprehensive daily itinerary and structured JSON output.`,
+            `Total flight + stay is $${finalSpent}, beautifully honoring our $${totalBudget} spending goal.`,
+            `Crafting your daily relaxing rhythm with peace of mind.`,
           ]
         },
         status: 'completed',
@@ -325,11 +321,11 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     const absoluteMinCost = cheapestFlight.price + cheapestTotalHotel;
     const netDeficit = absoluteMinCost - totalBudget;
 
-    const errorMsg = `Exhaustive tool calls yielded no viable flight and hotel combination within the $${totalBudget.toLocaleString()} budget. Minimum required budget for ${origin} → ${destCity} (${nights} nights) is $${absoluteMinCost.toLocaleString()} (Cheapest Flight: $${cheapestFlight.price}, Cheapest Lodging: $${cheapestTotalHotel}), representing an unavoidable deficit of $${netDeficit.toLocaleString()} USD.`;
+    const errorMsg = `We lovingly looked through every option, but couldn't quite find a restful flight and hotel combination within our cozy spending goal of $${totalBudget.toLocaleString()} for ${nights} nights in ${destCity}. A gentle adjustment to around $${absoluteMinCost.toLocaleString()} USD (an extra $${netDeficit.toLocaleString()}) would comfortably unlock a lovely flight and tranquil accommodations for you.`;
 
     addTrace({
       type: 'failure_deficit',
-      title: '5. Failure State: Budget Deficit Exhausted',
+      title: 'Gentle Reassurance: A Small Adjustment Needed',
       description: errorMsg,
       details: {
         budget_math: {
@@ -343,9 +339,9 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
           net_balance: -netDeficit,
         },
         reflection_notes: [
-          `All flight tiers and hotel ratings exhausted.`,
-          `No combination meets the mathematical budget constraint.`,
-          `Outputting designated JSON schema with "status": "error" and detailed "error_message".`
+          `All gentle combinations explored with care.`,
+          `Current spending goal is slightly below base travel costs for this route and duration.`,
+          `Presenting a kind suggestion to ease your planning.`
         ]
       },
       status: 'error',

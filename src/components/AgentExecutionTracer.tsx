@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { 
-  Bot, 
-  Terminal, 
+  Heart, 
+  Sparkles, 
   CheckCircle2, 
-  AlertTriangle, 
-  XCircle, 
+  AlertCircle, 
   ArrowRight, 
   RotateCcw, 
-  Calculator,
   ChevronDown,
   ChevronRight,
-  Eye
+  Feather,
+  Coffee
 } from 'lucide-react';
 import { AgentTraceStep } from '../types.ts';
 
@@ -43,28 +42,28 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
 
   if (traces.length === 0 && !isLoading) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-        <Bot className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-        <h3 className="text-sm font-semibold text-slate-300">Agent Reasoning Engine Idle</h3>
-        <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-          Click "Run Autonomous Agent" above to watch the agent parse constraints, query flight and hotel tools sequentially, and execute self-correction reflection loops.
+      <div className="bg-white border border-[#EFECE6] rounded-2xl p-10 text-center">
+        <Feather className="w-10 h-10 text-[#8A9A86] mx-auto mb-3" />
+        <h3 className="text-sm font-semibold text-[#3E3832]">Ready to Thoughtfully Plan With You</h3>
+        <p className="text-xs text-[#8C8279] max-w-md mx-auto mt-1">
+          Click "Craft My Peaceful Getaway" above. You can follow each calm step as we thoughtfully explore flights, check lovely stays, and ensure complete peace of mind.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-[#EFECE6] rounded-2xl overflow-hidden shadow-sm">
       {/* Tracer Header */}
-      <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+      <div className="px-6 py-4 border-b border-[#EFECE6] flex items-center justify-between bg-[#FDFCF9]">
         <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-indigo-400" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Agentic Execution & Reflection Trace
+          <Sparkles className="w-4 h-4 text-[#73836F]" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#8C8279]">
+            Mindful Reasoning & Tool Reflection Trace
           </span>
           {executionTimeMs !== undefined && (
-            <span className="text-xs font-mono text-slate-500">
-              · {executionTimeMs}ms elapsed
+            <span className="text-xs font-mono text-[#BBB4AA]">
+              · {executionTimeMs}ms
             </span>
           )}
         </div>
@@ -72,14 +71,14 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={expandAll}
-            className="text-[11px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded transition-colors"
+            className="text-[11px] text-[#8C8279] hover:text-[#3E3832] px-2 py-0.5 rounded transition-colors"
           >
             Expand All
           </button>
-          <span className="text-slate-700">·</span>
+          <span className="text-[#DED9D0]">·</span>
           <button
             onClick={collapseAll}
-            className="text-[11px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded transition-colors"
+            className="text-[11px] text-[#8C8279] hover:text-[#3E3832] px-2 py-0.5 rounded transition-colors"
           >
             Collapse All
           </button>
@@ -87,8 +86,8 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
       </div>
 
       {/* Steps List */}
-      <div className="p-4 space-y-3 font-sans">
-        {traces.map((step, idx) => {
+      <div className="p-5 space-y-3 font-sans">
+        {traces.map((step) => {
           const isExpanded = expandedSteps[step.id] ?? true;
           const isReflection = step.type === 'agentic_reflection';
           const isFailure = step.type === 'failure_deficit';
@@ -97,49 +96,49 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
           return (
             <div
               key={step.id}
-              className={`rounded-lg border transition-all ${
+              className={`rounded-xl border transition-all ${
                 isFailure
-                  ? 'bg-rose-950/20 border-rose-800/60'
+                  ? 'bg-[#FAF4F0] border-[#ECD9D4]'
                   : isReflection
-                  ? 'bg-amber-950/20 border-amber-800/60'
-                  : 'bg-slate-950/60 border-slate-800'
+                  ? 'bg-[#FDF9F3] border-[#F2E5D0]'
+                  : 'bg-[#F9F6F0] border-[#EFECE6]'
               }`}
             >
               {/* Step Title Row */}
               <button
                 onClick={() => toggleStep(step.id)}
-                className="w-full text-left p-3 flex items-start justify-between gap-3"
+                className="w-full text-left p-4 flex items-start justify-between gap-3"
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5">
                     {isFailure ? (
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <Heart className="w-4 h-4 text-[#C4736B] shrink-0" />
                     ) : isReflection ? (
-                      <RotateCcw className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+                      <RotateCcw className="w-4 h-4 text-[#D98880] shrink-0 animate-spin" />
                     ) : isCompleted ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-[#556B52] shrink-0" />
                     ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
+                      <div className="w-4 h-4 rounded-full border-2 border-[#8A9A86] border-t-transparent animate-spin" />
                     )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-200">
+                      <span className="text-xs font-semibold text-[#3E3832]">
                         {step.title}
                       </span>
                       {step.details?.is_correction && (
-                        <span className="text-[10px] font-mono font-medium text-amber-300 bg-amber-950/60 border border-amber-800/60 px-1.5 py-0.2 rounded">
-                          Self-Correction
+                        <span className="text-[10px] font-mono font-medium text-[#C4736B] bg-[#E0A996]/20 border border-[#E0A996]/40 px-2 py-0.2 rounded-full">
+                          Calm Self-Correction
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-[#524942] mt-1 leading-relaxed">
                       {step.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-slate-500 hover:text-slate-300 mt-1">
+                <div className="text-[#8C8279] hover:text-[#3E3832] mt-1">
                   {isExpanded ? (
                     <ChevronDown className="w-4 h-4" />
                   ) : (
@@ -150,31 +149,31 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
 
               {/* Step Expanded Details */}
               {isExpanded && step.details && (
-                <div className="px-4 pb-3 pt-1 border-t border-slate-800/60 space-y-2 text-xs">
+                <div className="px-5 pb-4 pt-1 border-t border-[#EFECE6] space-y-2.5 text-xs">
                   {/* Budget Arithmetic Ledger */}
                   {step.details.budget_math && (
-                    <div className="bg-slate-900/90 rounded p-2.5 border border-slate-800 font-mono text-[11px] grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="bg-white rounded-xl p-3 border border-[#EFECE6] font-mono text-[11px] grid grid-cols-2 sm:grid-cols-4 gap-2.5 shadow-2xs">
                       <div>
-                        <span className="text-slate-500 block">Total Budget:</span>
-                        <span className="text-slate-200 font-semibold tabular-nums">
+                        <span className="text-[#8C8279] block">Total Goal:</span>
+                        <span className="text-[#3E3832] font-semibold tabular-nums">
                           ${step.details.budget_math.total_budget.toLocaleString()}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">Flight Allocation:</span>
-                        <span className="text-indigo-300 font-semibold tabular-nums">
+                        <span className="text-[#8C8279] block">Flight Fare:</span>
+                        <span className="text-[#C4736B] font-semibold tabular-nums">
                           -${step.details.budget_math.flight_cost}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">Rem. for Hotel:</span>
-                        <span className="text-slate-200 font-semibold tabular-nums">
+                        <span className="text-[#8C8279] block">Lodging Pool:</span>
+                        <span className="text-[#3E3832] font-semibold tabular-nums">
                           ${step.details.budget_math.remaining_for_hotel}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">Nightly Ceiling:</span>
-                        <span className="text-amber-300 font-semibold tabular-nums">
+                        <span className="text-[#8C8279] block">Nightly Allowance:</span>
+                        <span className="text-[#556B52] font-semibold tabular-nums">
                           ${step.details.budget_math.max_nightly_ceiling}/night ({step.details.budget_math.nights}n)
                         </span>
                       </div>
@@ -183,12 +182,12 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
 
                   {/* Reflection Notes */}
                   {step.details.reflection_notes && (
-                    <div className="space-y-1 bg-amber-950/30 border border-amber-900/40 p-2.5 rounded">
-                      <div className="text-[11px] font-semibold text-amber-300 flex items-center gap-1.5">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                        Agent Reflection Insights:
+                    <div className="space-y-1 bg-white/90 border border-[#F2E5D0] p-3 rounded-xl shadow-2xs">
+                      <div className="text-[11px] font-semibold text-[#8C6B45] flex items-center gap-1.5">
+                        <Coffee className="w-3.5 h-3.5 text-[#C4736B]" />
+                        Companion Reflections & Care:
                       </div>
-                      <ul className="list-disc list-inside text-[11px] text-amber-200/80 space-y-0.5">
+                      <ul className="list-disc list-inside text-[11px] text-[#524942] space-y-0.5">
                         {step.details.reflection_notes.map((note, i) => (
                           <li key={i}>{note}</li>
                         ))}
@@ -198,13 +197,13 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
 
                   {/* Tool Call Parameters */}
                   {step.details.tool_name && step.details.params && (
-                    <div className="bg-slate-900/90 rounded p-2 border border-slate-800 text-[11px] font-mono text-slate-400 overflow-x-auto">
-                      <span className="text-indigo-400 font-semibold">{step.details.tool_name}</span>
+                    <div className="bg-white rounded-xl p-2.5 border border-[#EFECE6] text-[11px] font-mono text-[#8C8279] overflow-x-auto shadow-2xs">
+                      <span className="text-[#73836F] font-semibold">{step.details.tool_name}</span>
                       <span>(</span>
                       {Object.entries(step.details.params).map(([k, v], i, arr) => (
                         <span key={k}>
-                          <span className="text-slate-300">{k}</span>=
-                          <span className="text-emerald-400">"{String(v)}"</span>
+                          <span className="text-[#3E3832]">{k}</span>=
+                          <span className="text-[#C4736B]">"{String(v)}"</span>
                           {i < arr.length - 1 ? ', ' : ''}
                         </span>
                       ))}
@@ -218,10 +217,10 @@ export const AgentExecutionTracer: React.FC<AgentExecutionTracerProps> = ({
         })}
 
         {isLoading && (
-          <div className="p-3 bg-slate-950/60 border border-indigo-500/40 rounded-lg flex items-center gap-3 animate-pulse">
-            <div className="w-4 h-4 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
-            <span className="text-xs text-indigo-300 font-medium">
-              Autonomous Agent actively reflecting on tool outputs and validating mathematical constraints...
+          <div className="p-4 bg-[#F9F6F0] border border-[#8A9A86]/40 rounded-xl flex items-center gap-3">
+            <div className="w-4 h-4 rounded-full border-2 border-[#8A9A86] border-t-transparent animate-spin" />
+            <span className="text-xs text-[#556B52] font-medium">
+              We are gently querying real-time flight and hotel options to craft your ideal retreat...
             </span>
           </div>
         )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Plane, Compass, Navigation, Maximize2, RotateCw } from 'lucide-react';
-import { getCoordinatesForIata, getAirportByIata, getCityForIata } from '../data/airports.ts';
+import { Compass, Navigation, Maximize2, Feather, Heart } from 'lucide-react';
+import { getCoordinatesForIata, getCityForIata } from '../data/airports.ts';
 
 interface FlightRouteMapProps {
   originIata: string;
@@ -11,11 +11,9 @@ interface FlightRouteMapProps {
   duration?: string;
 }
 
-// Simplified continent landmass polygons for clean offline rendering without external network assets
 const WORLD_CONTINENTS_GEOJSON: any = {
   type: 'FeatureCollection',
   features: [
-    // North America
     {
       type: 'Feature',
       properties: { name: 'North America' },
@@ -29,7 +27,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // South America
     {
       type: 'Feature',
       properties: { name: 'South America' },
@@ -41,7 +38,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // Europe
     {
       type: 'Feature',
       properties: { name: 'Europe' },
@@ -53,7 +49,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // Africa
     {
       type: 'Feature',
       properties: { name: 'Africa' },
@@ -65,7 +60,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // Asia
     {
       type: 'Feature',
       properties: { name: 'Asia' },
@@ -78,7 +72,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // Australia
     {
       type: 'Feature',
       properties: { name: 'Australia' },
@@ -90,7 +83,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // Japan archipelago
     {
       type: 'Feature',
       properties: { name: 'Japan' },
@@ -101,7 +93,6 @@ const WORLD_CONTINENTS_GEOJSON: any = {
         ]]
       }
     },
-    // British Isles
     {
       type: 'Feature',
       properties: { name: 'United Kingdom' },
@@ -115,11 +106,10 @@ const WORLD_CONTINENTS_GEOJSON: any = {
   ]
 };
 
-// Calculate Great Circle distance between two points in km and nautical miles
 function calculateDistance(coord1: [number, number], coord2: [number, number]): { km: number; nm: number } {
   const [lon1, lat1] = coord1;
   const [lon2, lat2] = coord2;
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -134,7 +124,6 @@ function calculateDistance(coord1: [number, number], coord2: [number, number]): 
   return { km, nm };
 }
 
-// Initial Bearing in degrees
 function calculateBearing(coord1: [number, number], coord2: [number, number]): number {
   const [lon1, lat1] = coord1.map((deg) => (deg * Math.PI) / 180);
   const [lon2, lat2] = coord2.map((deg) => (deg * Math.PI) / 180);
@@ -166,11 +155,10 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
   const distance = useMemo(() => calculateDistance(originCoords, destCoords), [originCoords, destCoords]);
   const initialBearing = useMemo(() => calculateBearing(originCoords, destCoords), [originCoords, destCoords]);
 
-  // Animated airplane along great-circle trajectory
   useEffect(() => {
     let animFrame: number;
     let start = Date.now();
-    const period = 7000; // 7 seconds loop
+    const period = 7500;
 
     const loop = () => {
       const now = Date.now();
@@ -183,7 +171,6 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
     return () => cancelAnimationFrame(animFrame);
   }, [originIata, destinationIata]);
 
-  // D3 Map Rendering
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -196,7 +183,6 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
     // Map container group
     const g = svg.append('g');
 
-    // Create GeoJSON Great-Circle LineString
     const lineFeature: any = {
       type: 'Feature',
       geometry: {
@@ -205,7 +191,6 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
       }
     };
 
-    // Determine center longitude for Pacific or Atlantic crossings to avoid seam wrapping
     const lon1 = originCoords[0];
     const lon2 = destCoords[0];
     let centerLon = (lon1 + lon2) / 2;
@@ -213,7 +198,6 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
       centerLon = (centerLon + 180) % 360;
     }
 
-    // Projection
     const projection = d3.geoNaturalEarth1()
       .scale(isCentered ? 165 : 130)
       .rotate([-centerLon, 0, 0])
@@ -221,115 +205,114 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
 
     const pathGenerator = d3.geoPath().projection(projection);
 
-    // Graticule (Lat/Long lines)
+    // Warm parchment ocean background
+    g.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('fill', '#F4EFE6');
+
+    // Soft graticule
     const graticule = d3.geoGraticule10();
     g.append('path')
       .datum(graticule)
       .attr('d', pathGenerator)
       .attr('fill', 'none')
-      .attr('stroke', '#334155')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-dasharray', '2,4')
-      .attr('opacity', 0.4);
+      .attr('stroke', '#E2DCD1')
+      .attr('stroke-width', 0.6)
+      .attr('stroke-dasharray', '2,4');
 
-    // World Landmass
+    // Continents in warm sand/linen
     g.append('g')
       .selectAll('path')
       .data(WORLD_CONTINENTS_GEOJSON.features)
       .enter()
       .append('path')
       .attr('d', pathGenerator as any)
-      .attr('fill', '#1e293b')
-      .attr('stroke', '#334155')
-      .attr('stroke-width', 0.75)
-      .attr('opacity', 0.85);
+      .attr('fill', '#E7E0D3')
+      .attr('stroke', '#D8D0C2')
+      .attr('stroke-width', 0.8);
 
-    // Great Circle Geodesic Path (D3 automatically curves along sphere)
-    const greatCirclePath = g.append('path')
-      .datum(lineFeature)
-      .attr('d', pathGenerator)
-      .attr('fill', 'none')
-      .attr('stroke', '#6366f1')
-      .attr('stroke-width', 2.5)
-      .attr('stroke-dasharray', '5,4')
-      .attr('stroke-linecap', 'round')
-      .attr('opacity', 0.9);
-
-    // Glow underlay for route line
+    // Warm terracotta Great Circle Arc
     g.append('path')
       .datum(lineFeature)
       .attr('d', pathGenerator)
       .attr('fill', 'none')
-      .attr('stroke', '#818cf8')
-      .attr('stroke-width', 6)
-      .attr('opacity', 0.15)
+      .attr('stroke', '#E0A996')
+      .attr('stroke-width', 5)
+      .attr('opacity', 0.4)
       .attr('stroke-linecap', 'round');
 
-    // Origin and Destination Screen Points
+    g.append('path')
+      .datum(lineFeature)
+      .attr('d', pathGenerator)
+      .attr('fill', 'none')
+      .attr('stroke', '#C8766E')
+      .attr('stroke-width', 2.2)
+      .attr('stroke-dasharray', '5,4')
+      .attr('stroke-linecap', 'round');
+
     const pOrigin = projection(originCoords);
     const pDest = projection(destCoords);
 
     if (pOrigin && pDest) {
-      // Pulse animation for Origin
+      // Origin Point
       g.append('circle')
         .attr('cx', pOrigin[0])
         .attr('cy', pOrigin[1])
         .attr('r', 8)
-        .attr('fill', '#818cf8')
+        .attr('fill', '#8A9A86')
         .attr('opacity', 0.25);
 
       g.append('circle')
         .attr('cx', pOrigin[0])
         .attr('cy', pOrigin[1])
         .attr('r', 4.5)
-        .attr('fill', '#6366f1')
-        .attr('stroke', '#ffffff')
+        .attr('fill', '#73836F')
+        .attr('stroke', '#FFFFFF')
         .attr('stroke-width', 1.5);
 
-      // Pulse animation for Destination
+      // Destination Point
       g.append('circle')
         .attr('cx', pDest[0])
         .attr('cy', pDest[1])
         .attr('r', 8)
-        .attr('fill', '#34d399')
+        .attr('fill', '#D98880')
         .attr('opacity', 0.25);
 
       g.append('circle')
         .attr('cx', pDest[0])
         .attr('cy', pDest[1])
         .attr('r', 4.5)
-        .attr('fill', '#10b981')
-        .attr('stroke', '#ffffff')
+        .attr('fill', '#C8766E')
+        .attr('stroke', '#FFFFFF')
         .attr('stroke-width', 1.5);
 
-      // Origin text label
+      // Labels
       g.append('text')
         .attr('x', pOrigin[0])
         .attr('y', pOrigin[1] - 10)
         .attr('text-anchor', 'middle')
-        .attr('fill', '#e2e8f0')
+        .attr('fill', '#3E3832')
         .attr('font-size', '11px')
         .attr('font-weight', '600')
         .attr('font-family', 'JetBrains Mono, monospace')
         .text(originIata);
 
-      // Destination text label
       g.append('text')
         .attr('x', pDest[0])
         .attr('y', pDest[1] - 10)
         .attr('text-anchor', 'middle')
-        .attr('fill', '#34d399')
+        .attr('fill', '#C8766E')
         .attr('font-size', '11px')
         .attr('font-weight', '600')
         .attr('font-family', 'JetBrains Mono, monospace')
         .text(destinationIata);
 
-      // Animated plane interpolation
+      // Plane icon
       const interpolator = d3.geoInterpolate(originCoords, destCoords);
       const curCoord = interpolator(airplaneProgress);
       const pCurrent = projection(curCoord);
 
-      // Calculate tangent angle for plane icon orientation
       const nextCoord = interpolator(Math.min(1, airplaneProgress + 0.02));
       const pNext = projection(nextCoord);
 
@@ -344,18 +327,16 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
         const planeGroup = g.append('g')
           .attr('transform', `translate(${pCurrent[0]}, ${pCurrent[1]}) rotate(${angle})`);
 
-        // Plane marker SVG
         planeGroup.append('path')
           .attr('d', 'M0,-5 L7,5 L0,3 L-7,5 Z')
-          .attr('fill', '#ffffff')
-          .attr('stroke', '#4f46e5')
-          .attr('stroke-width', 1);
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#C8766E')
+          .attr('stroke-width', 1.2);
 
-        // Ping ring
         planeGroup.append('circle')
-          .attr('r', 10)
+          .attr('r', 9)
           .attr('fill', 'none')
-          .attr('stroke', '#a5b4fc')
+          .attr('stroke', '#D98880')
           .attr('stroke-width', 1)
           .attr('opacity', 0.5);
       }
@@ -363,79 +344,79 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
   }, [originCoords, destCoords, originIata, destinationIata, isCentered, airplaneProgress]);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-[#EFECE6] rounded-2xl overflow-hidden shadow-sm">
       {/* Map Header */}
-      <div className="px-5 py-3.5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-[#EFECE6] bg-[#FDFCF9] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Navigation className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            D3 Great Circle Flight Path Visualization
+          <Feather className="w-4 h-4 text-[#73836F]" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8C8279]">
+            Gentle Spherical Flight Path Visualization
           </h3>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-slate-400">
+          <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-[#8C8279]">
             <span>
-              Distance: <strong className="text-slate-200 tabular-nums">{distance.km.toLocaleString()} km</strong> ({distance.nm.toLocaleString()} nm)
+              Distance: <strong className="text-[#3E3832] tabular-nums">{distance.km.toLocaleString()} km</strong> ({distance.nm.toLocaleString()} nm)
             </span>
-            <span className="text-slate-700">·</span>
+            <span className="text-[#DED9D0]">·</span>
             <span>
-              Initial Heading: <strong className="text-indigo-300 tabular-nums">{initialBearing}°</strong>
+              Initial Bearing: <strong className="text-[#C8766E] tabular-nums">{initialBearing}°</strong>
             </span>
           </div>
 
           <button
             onClick={() => setIsCentered(!isCentered)}
-            className="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs font-medium text-[#3E3832] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
             title="Toggle projection zoom view"
           >
             <Maximize2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{isCentered ? 'Standard View' : 'Centered Zoom'}</span>
+            <span className="hidden sm:inline">{isCentered ? 'Standard View' : 'Centered Focus'}</span>
           </button>
         </div>
       </div>
 
       {/* SVG Canvas */}
-      <div className="relative bg-slate-950 flex items-center justify-center p-2 overflow-hidden">
+      <div className="relative bg-[#F4EFE6] flex items-center justify-center p-2 overflow-hidden">
         <svg
           ref={svgRef}
           viewBox="0 0 800 380"
-          className="w-full h-auto max-h-[340px] select-none"
+          className="w-full h-auto max-h-[340px] select-none rounded-xl"
         />
 
         {/* Flight Badge Floating Overlay */}
-        <div className="absolute top-4 left-4 bg-slate-900/90 border border-slate-800 backdrop-blur-md rounded-lg p-2.5 shadow-lg text-xs space-y-1 font-mono">
+        <div className="absolute top-4 left-4 bg-white/95 border border-[#EFECE6] backdrop-blur-md rounded-xl p-3 shadow-md text-xs space-y-1 font-mono">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-semibold text-slate-100">
+            <span className="w-2 h-2 rounded-full bg-[#8A9A86] animate-pulse" />
+            <span className="font-semibold text-[#3E3832]">
               {airline || 'Scheduled Carrier'} {flightNumber && `· ${flightNumber}`}
             </span>
           </div>
-          <div className="text-[11px] text-slate-400">
+          <div className="text-[11px] text-[#8C8279]">
             <span>{originCity} ({originIata})</span>
-            <span className="mx-1 text-indigo-400">→</span>
+            <span className="mx-1 text-[#C8766E]">→</span>
             <span>{destCity} ({destinationIata})</span>
           </div>
           {duration && (
-            <div className="text-[10px] text-slate-500">
-              Est. Duration: {duration} (Nonstop Geodesic)
+            <div className="text-[10px] text-[#8C8279]">
+              Est. Duration: {duration} (Gentle Direct Transit)
             </div>
           )}
         </div>
 
         {/* Legend */}
-        <div className="absolute bottom-3 right-4 bg-slate-900/80 border border-slate-800/80 backdrop-blur-sm rounded px-2.5 py-1 text-[10px] font-mono text-slate-400 flex items-center gap-3">
+        <div className="absolute bottom-3 right-4 bg-white/90 border border-[#EFECE6] backdrop-blur-sm rounded-xl px-3 py-1.5 text-[10px] font-mono text-[#8C8279] flex items-center gap-3 shadow-xs">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#73836F] inline-block" />
             <span>Origin ({originIata})</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-            <span>Destination ({destinationIata})</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C8766E] inline-block" />
+            <span>Sanctuary ({destinationIata})</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-0.5 bg-indigo-400 inline-block border-t border-dashed" />
-            <span>Great Circle Geodesic</span>
+            <span className="w-3 h-0.5 bg-[#C8766E] inline-block border-t border-dashed" />
+            <span>Spherical Geodesic</span>
           </div>
         </div>
       </div>

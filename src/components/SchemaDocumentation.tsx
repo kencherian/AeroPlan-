@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Braces, Sparkles, CheckCircle, Terminal } from 'lucide-react';
+import { Code2, Feather, Heart } from 'lucide-react';
 
 export const SchemaDocumentation: React.FC = () => {
   const schemaCode = `{
@@ -43,48 +43,48 @@ export const SchemaDocumentation: React.FC = () => {
 }`;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-6 p-6">
+    <div className="bg-white border border-[#EFECE6] rounded-2xl overflow-hidden shadow-sm space-y-6 p-6">
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Code2 className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-sm font-semibold text-slate-100">
-            Agentic Function Declarations & Structured JSON Schema
+        <div className="flex items-center gap-2 mb-1.5">
+          <Feather className="w-4 h-4 text-[#73836F]" />
+          <h3 className="text-sm font-semibold text-[#3E3832]">
+            Programmatic Tools & Structured JSON Contract
           </h3>
         </div>
-        <p className="text-xs text-slate-400">
-          The autonomous agent utilizes these function declarations to pull live flight and hotel data and outputs strictly adhering to the schema.
+        <p className="text-xs text-[#8C8279]">
+          Our gentle companion queries real-time travel APIs and delivers strictly structured results for your peace of mind.
         </p>
       </div>
 
       {/* Tools Specification Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Tool 1 */}
-        <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+        <div className="bg-[#F9F6F0] border border-[#EFECE6] rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-mono font-bold text-indigo-300">Tool 1: search_flights</span>
-            <span className="text-[10px] font-mono text-slate-500">Live Airline API</span>
+            <span className="text-xs font-mono font-bold text-[#73836F]">Tool 1: search_flights</span>
+            <span className="text-[10px] font-mono text-[#8C8279]">Live Airline API</span>
           </div>
-          <p className="text-xs text-slate-400 mb-3">Queries live airline pricing and availability.</p>
-          <div className="space-y-1.5 font-mono text-[11px] bg-slate-900/80 p-2.5 rounded border border-slate-800/80">
-            <div><span className="text-slate-300">origin</span> <span className="text-slate-500">(string)</span>: 3-letter IATA code</div>
-            <div><span className="text-slate-300">destination</span> <span className="text-slate-500">(string)</span>: 3-letter IATA code</div>
-            <div><span className="text-slate-300">departure_date</span> <span className="text-slate-500">(string)</span>: YYYY-MM-DD</div>
-            <div><span className="text-slate-300">return_date</span> <span className="text-slate-500">(string)</span>: YYYY-MM-DD</div>
+          <p className="text-xs text-[#8C8279] mb-3">Queries live airline pricing and availability with care.</p>
+          <div className="space-y-1.5 font-mono text-[11px] bg-white p-3 rounded-lg border border-[#EFECE6]">
+            <div><span className="text-[#3E3832]">origin</span> <span className="text-[#8C8279]">(string)</span>: 3-letter IATA code</div>
+            <div><span className="text-[#3E3832]">destination</span> <span className="text-[#8C8279]">(string)</span>: 3-letter IATA code</div>
+            <div><span className="text-[#3E3832]">departure_date</span> <span className="text-[#8C8279]">(string)</span>: YYYY-MM-DD</div>
+            <div><span className="text-[#3E3832]">return_date</span> <span className="text-[#8C8279]">(string)</span>: YYYY-MM-DD</div>
           </div>
         </div>
 
         {/* Tool 2 */}
-        <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+        <div className="bg-[#F9F6F0] border border-[#EFECE6] rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-mono font-bold text-teal-300">Tool 2: search_hotels</span>
-            <span className="text-[10px] font-mono text-slate-500">Live Hotel API</span>
+            <span className="text-xs font-mono font-bold text-[#C4736B]">Tool 2: search_hotels</span>
+            <span className="text-[10px] font-mono text-[#8C8279]">Live Hotel API</span>
           </div>
-          <p className="text-xs text-slate-400 mb-3">Queries live hotel pricing and availability for a specific city.</p>
-          <div className="space-y-1.5 font-mono text-[11px] bg-slate-900/80 p-2.5 rounded border border-slate-800/80">
-            <div><span className="text-slate-300">city</span> <span className="text-slate-500">(string)</span>: Destination city name</div>
-            <div><span className="text-slate-300">check_in</span> <span className="text-slate-500">(string)</span>: YYYY-MM-DD</div>
-            <div><span className="text-slate-300">check_out</span> <span className="text-slate-500">(string)</span>: YYYY-MM-DD</div>
-            <div><span className="text-slate-300">max_price_per_night</span> <span className="text-slate-500">(number)</span>: Maximum allowable nightly rate in USD</div>
+          <p className="text-xs text-[#8C8279] mb-3">Queries live hotel availability within your comfortable nightly ceiling.</p>
+          <div className="space-y-1.5 font-mono text-[11px] bg-white p-3 rounded-lg border border-[#EFECE6]">
+            <div><span className="text-[#3E3832]">city</span> <span className="text-[#8C8279]">(string)</span>: Destination city name</div>
+            <div><span className="text-[#3E3832]">check_in</span> <span className="text-[#8C8279]">(string)</span>: YYYY-MM-DD</div>
+            <div><span className="text-[#3E3832]">check_out</span> <span className="text-[#8C8279]">(string)</span>: YYYY-MM-DD</div>
+            <div><span className="text-[#3E3832]">max_price_per_night</span> <span className="text-[#8C8279]">(number)</span>: Maximum allowable nightly rate in USD</div>
           </div>
         </div>
       </div>
@@ -92,10 +92,10 @@ export const SchemaDocumentation: React.FC = () => {
       {/* JSON Schema */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-slate-300">Enforced Structured Output Schema</span>
-          <span className="text-[10px] font-mono text-emerald-400">Response MIME: application/json</span>
+          <span className="text-xs font-semibold text-[#3E3832]">Strict Programmatic Schema Contract</span>
+          <span className="text-[10px] font-mono text-[#556B52]">Response MIME: application/json</span>
         </div>
-        <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed">
+        <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EFECE6] font-mono text-xs text-[#3E3832] overflow-x-auto leading-relaxed">
           <pre>{schemaCode}</pre>
         </div>
       </div>

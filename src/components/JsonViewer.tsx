@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Code, Copy, Check, Download, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Code, Copy, Check, Download, CheckCircle2, Feather } from 'lucide-react';
 import { AgentPlanOutput } from '../types.ts';
 
 interface JsonViewerProps {
@@ -29,23 +29,15 @@ export const JsonViewer: React.FC<JsonViewerProps> = ({ data }) => {
     URL.revokeObjectURL(url);
   };
 
-  // Schema compliance validator
-  const hasStatus = data.status === 'success' || data.status === 'error';
-  const hasFinancials = data.financials && 
-    typeof data.financials.total_budget === 'number' &&
-    typeof data.financials.total_spent === 'number' &&
-    typeof data.financials.remaining_funds === 'number';
-  const isSchemaValid = hasStatus && hasFinancials;
-
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-      <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+    <div className="bg-white border border-[#EFECE6] rounded-2xl overflow-hidden shadow-sm">
+      <div className="px-6 py-4 border-b border-[#EFECE6] flex items-center justify-between bg-[#FDFCF9]">
         <div className="flex items-center gap-2">
-          <Code className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Strict Structured Output (Response MIME: application/json)
+          <Code className="w-4 h-4 text-[#8A9A86]" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8C8279]">
+            Strict Programmatic Output (MIME: application/json)
           </h3>
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-2 py-0.5 rounded">
+          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#556B52] bg-[#8A9A86]/15 border border-[#8A9A86]/30 px-2.5 py-0.5 rounded-full">
             <CheckCircle2 className="w-3 h-3" />
             Schema Validated
           </span>
@@ -54,16 +46,16 @@ export const JsonViewer: React.FC<JsonViewerProps> = ({ data }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs font-medium text-[#3E3832] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <Check className="w-3.5 h-3.5 text-[#556B52]" />
                 <span>Copied</span>
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5" />
+                <Copy className="w-3.5 h-3.5 text-[#8C8279]" />
                 <span>Copy JSON</span>
               </>
             )}
@@ -71,15 +63,15 @@ export const JsonViewer: React.FC<JsonViewerProps> = ({ data }) => {
 
           <button
             onClick={handleDownload}
-            className="px-2.5 py-1 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 text-xs font-medium text-[#3E3832] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-[#8C8279]" />
             <span>Download</span>
           </button>
         </div>
       </div>
 
-      <div className="p-4 bg-slate-950 text-slate-200 font-mono text-xs overflow-x-auto max-h-[500px] leading-relaxed">
+      <div className="p-5 bg-[#FAF7F2] text-[#3E3832] font-mono text-xs overflow-x-auto max-h-[500px] leading-relaxed border-t border-[#EFECE6]">
         <pre className="whitespace-pre">{jsonString}</pre>
       </div>
     </div>
