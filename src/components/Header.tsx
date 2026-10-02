@@ -2,8 +2,8 @@ import React from 'react';
 import { Compass, Sparkles, SlidersHorizontal, Code2 } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'planner' | 'tracer' | 'tools' | 'schema';
-  onSelectTab: (tab: 'planner' | 'tracer' | 'tools' | 'schema') => void;
+  activeTab: 'planner' | 'map' | 'tracer' | 'tools' | 'schema';
+  onSelectTab: (tab: 'planner' | 'map' | 'tracer' | 'tools' | 'schema') => void;
   onResetToSample: () => void;
 }
 
@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onResetT
           </span>
         </div>
 
-        {/* Zone 2: 4 Clean Nav Links / Tabs */}
+        {/* Zone 2: Clean Nav Links / Tabs */}
         <nav className="hidden md:flex items-center gap-1 bg-slate-950/70 p-1 rounded-lg border border-slate-800">
           <button
             onClick={() => onSelectTab('planner')}
@@ -33,6 +33,16 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onResetT
             }`}
           >
             Agentic Planner
+          </button>
+          <button
+            onClick={() => onSelectTab('map')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+              activeTab === 'map'
+                ? 'bg-slate-800 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Flight Map
           </button>
           <button
             onClick={() => onSelectTab('tracer')}

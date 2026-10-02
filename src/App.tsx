@@ -14,12 +14,13 @@ import { JsonViewer } from './components/JsonViewer.tsx';
 import { FailureDeficitCard } from './components/FailureDeficitCard.tsx';
 import { DirectToolExplorer } from './components/DirectToolExplorer.tsx';
 import { SchemaDocumentation } from './components/SchemaDocumentation.tsx';
+import { FlightRouteMap } from './components/FlightRouteMap.tsx';
 import { AgentExecutionResult, PresetScenario } from './types.ts';
 import { PRESET_SCENARIOS } from './data/presets.ts';
 import { Bot, Sparkles, Terminal, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'planner' | 'tracer' | 'tools' | 'schema'>('planner');
+  const [activeTab, setActiveTab] = useState<'planner' | 'map' | 'tracer' | 'tools' | 'schema'>('planner');
   
   // Trip constraint states
   const defaultPreset = PRESET_SCENARIOS[0];
@@ -194,6 +195,13 @@ export default function App() {
                   />
                 )}
 
+                {/* D3 Great Circle Flight Path Map */}
+                <FlightRouteMap
+                  originIata={origin}
+                  destinationIata={destination}
+                  flightNumber={agentResult.output.bookings?.flight_pnr}
+                />
+
                 {/* Daily Itinerary */}
                 {agentResult.output.daily_itinerary && (
                   <ItineraryTimeline days={agentResult.output.daily_itinerary} />
@@ -205,6 +213,26 @@ export default function App() {
             {agentResult && (
               <JsonViewer data={agentResult.output} />
             )}
+          </div>
+        )}
+
+        {/* Tab: Dedicated Flight Map View */}
+        {activeTab === 'map' && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-slate-200">
+                Interactive Flight Path & Geodesic Navigation
+              </h2>
+              <p className="text-xs text-slate-400">
+                Spherical great-circle route plotting between origin ({origin}) and destination ({destination}) rendered with D3.js.
+              </p>
+            </div>
+
+            <FlightRouteMap
+              originIata={origin}
+              destinationIata={destination}
+              flightNumber={agentResult?.output.bookings?.flight_pnr}
+            />
           </div>
         )}
 
