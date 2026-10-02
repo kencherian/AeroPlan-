@@ -47,6 +47,24 @@ export interface SearchHotelsParams {
   max_price_per_night: number;
 }
 
+export interface GetWeatherForecastParams {
+  city: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface DailyWeatherForecast {
+  condition: string;
+  temp_high_c: number;
+  temp_low_c: number;
+  temp_high_f: number;
+  temp_low_f: number;
+  icon: 'sunny' | 'partly_cloudy' | 'cloudy' | 'rain' | 'breeze' | 'clear';
+  summary: string;
+  clothing_tip: string;
+  humidity_pct: number;
+}
+
 export interface Financials {
   total_budget: number;
   total_spent: number;
@@ -64,6 +82,7 @@ export interface DailyItineraryDay {
   day_number: number;
   date: string;
   agenda: string[];
+  weather?: DailyWeatherForecast;
 }
 
 export interface AgentPlanOutput {
@@ -79,6 +98,7 @@ export type AgentStepType =
   | 'flight_search'
   | 'budget_deduction'
   | 'hotel_search'
+  | 'weather_forecast'
   | 'agentic_reflection'
   | 'plan_compilation'
   | 'failure_deficit';

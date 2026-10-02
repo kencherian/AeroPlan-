@@ -300,3 +300,234 @@ export function search_hotels(params: SearchHotelsParams): {
     cheapest_available_rate: cheapestRate
   };
 }
+
+export function get_weather_forecast(params: {
+  city: string;
+  start_date: string;
+  end_date: string;
+}): {
+  success: boolean;
+  city: string;
+  start_date: string;
+  end_date: string;
+  forecasts: Array<{
+    date: string;
+    day_number: number;
+    weather: import('../types.ts').DailyWeatherForecast;
+  }>;
+} {
+  const { city, start_date, end_date } = params;
+  const cleanCity = city.trim();
+  const startDate = new Date(start_date);
+  const endDate = new Date(end_date);
+  const diffTime = endDate.getTime() - startDate.getTime();
+  const totalDays = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24))) + 1;
+
+  const lowerCity = cleanCity.toLowerCase();
+  const seed = hashString(`${lowerCity}-${start_date}-${end_date}`);
+
+  // Base seasonal temperature and condition profiles
+  interface CityProfile {
+    baseHighC: number;
+    baseLowC: number;
+    conditions: Array<{
+      condition: string;
+      icon: 'sunny' | 'partly_cloudy' | 'cloudy' | 'rain' | 'breeze' | 'clear';
+      summary: string;
+      clothing_tip: string;
+    }>;
+  }
+
+  let profile: CityProfile = {
+    baseHighC: 20,
+    baseLowC: 13,
+    conditions: [
+      {
+        condition: 'Gentle Sunshine',
+        icon: 'sunny',
+        summary: 'Warm golden sunlight with pleasant daytime warmth.',
+        clothing_tip: 'Breathable cotton shirts and a light layer for shade.'
+      },
+      {
+        condition: 'Soft Scattered Clouds',
+        icon: 'partly_cloudy',
+        summary: 'Comfortable diffused light with calm, mild temperatures.',
+        clothing_tip: 'Comfortable walking attire and sunglasses.'
+      },
+      {
+        condition: 'Brisk Fresh Breeze',
+        icon: 'breeze',
+        summary: 'Crisp, invigorating air with clear visibility across the city.',
+        clothing_tip: 'A cozy cardigan or light knit sweater.'
+      },
+      {
+        condition: 'Gentle Passing Mist',
+        icon: 'rain',
+        summary: 'Brief gentle showers that leave the streets fresh and romantic.',
+        clothing_tip: 'A lightweight water-resistant jacket or compact umbrella.'
+      }
+    ]
+  };
+
+  if (lowerCity.includes('tokyo')) {
+    profile = {
+      baseHighC: 21,
+      baseLowC: 14,
+      conditions: [
+        {
+          condition: 'Crisp Autumn Sun',
+          icon: 'sunny',
+          summary: 'Brilliant blue skies and mild gentle warmth over gardens.',
+          clothing_tip: 'Light layers, comfortable slip-on walking shoes for temples.'
+        },
+        {
+          condition: 'Mellow Twilight Skies',
+          icon: 'partly_cloudy',
+          summary: 'Soft cloud cover and pleasant evening breeze in the alleyways.',
+          clothing_tip: 'A soft scarf and cozy cardigan for evening izakaya visits.'
+        },
+        {
+          condition: 'Refreshing Seasonal Breeze',
+          icon: 'breeze',
+          summary: 'Clear air with distant glimpses of mountains.',
+          clothing_tip: 'Light jacket and comfortable daypack.'
+        },
+        {
+          condition: 'Delicate Garden Rain',
+          icon: 'rain',
+          summary: 'Atmospheric light mist enhancing the moss gardens and lantern glow.',
+          clothing_tip: 'Compact umbrella and water-resistant footwear.'
+        }
+      ]
+    };
+  } else if (lowerCity.includes('paris')) {
+    profile = {
+      baseHighC: 18,
+      baseLowC: 10,
+      conditions: [
+        {
+          condition: 'Golden Parisian Light',
+          icon: 'partly_cloudy',
+          summary: 'Romantic diffused sunlight warming the stone boulevards.',
+          clothing_tip: 'Classic trench coat or woolen blazer with comfortable loafers.'
+        },
+        {
+          condition: 'Brisk Seine Breeze',
+          icon: 'breeze',
+          summary: 'Cool riverside air ideal for gallery visits and warm cafés.',
+          clothing_tip: 'A cozy cashmere scarf and layered knit.'
+        },
+        {
+          condition: 'Soft Autumn Sun',
+          icon: 'sunny',
+          summary: 'Clear afternoon light over Luxembourg Gardens.',
+          clothing_tip: 'Light sweater and sunglasses for terrace seating.'
+        },
+        {
+          condition: 'Gentle Cobblestone Drizzle',
+          icon: 'rain',
+          summary: 'Quiet raindrops dancing on zinc rooftops.',
+          clothing_tip: 'Chic umbrella and waterproof coat.'
+        }
+      ]
+    };
+  } else if (lowerCity.includes('miami')) {
+    profile = {
+      baseHighC: 28,
+      baseLowC: 22,
+      conditions: [
+        {
+          condition: 'Warm Ocean Sun',
+          icon: 'sunny',
+          summary: 'Balmy tropical sunshine with gentle Atlantic trade winds.',
+          clothing_tip: 'Linen shirts, polarized sunglasses, and breathable resort wear.'
+        },
+        {
+          condition: 'Pleasant Coastal Breeze',
+          icon: 'breeze',
+          summary: 'Refreshing ocean air sweeping past the palm trees.',
+          clothing_tip: 'Light cotton shorts and comfortable sandals.'
+        },
+        {
+          condition: 'Sunlit Tropical Clouds',
+          icon: 'partly_cloudy',
+          summary: 'Warm dappled sunlight with warm, soothing evening temperatures.',
+          clothing_tip: 'Sun hat, light cotton layers, and beach tote.'
+        }
+      ]
+    };
+  } else if (lowerCity.includes('london')) {
+    profile = {
+      baseHighC: 16,
+      baseLowC: 9,
+      conditions: [
+        {
+          condition: 'Overcast & Atmospheric',
+          icon: 'cloudy',
+          summary: 'Classic moody skies perfect for museum mornings and tea.',
+          clothing_tip: 'Layered wool knit, tailored coat, and sturdy walking shoes.'
+        },
+        {
+          condition: 'Gentle Sunlight Breaks',
+          icon: 'partly_cloudy',
+          summary: 'Warm sun patches illuminating the royal parks.',
+          clothing_tip: 'Light jacket and comfortable scarf.'
+        },
+        {
+          condition: 'Soft English Drizzle',
+          icon: 'rain',
+          summary: 'Quiet mist across historic mews and garden squares.',
+          clothing_tip: 'Waxed jacket or trench with umbrella.'
+        }
+      ]
+    };
+  }
+
+  const forecasts: Array<{
+    date: string;
+    day_number: number;
+    weather: import('../types.ts').DailyWeatherForecast;
+  }> = [];
+
+  for (let d = 0; d < totalDays; d++) {
+    const curDate = new Date(startDate);
+    curDate.setDate(startDate.getDate() + d);
+    const dateStr = curDate.toISOString().split('T')[0];
+
+    const daySeed = (seed + d * 31) % profile.conditions.length;
+    const cond = profile.conditions[daySeed];
+
+    const tempOffset = ((seed + d * 13) % 5) - 2;
+    const highC = profile.baseHighC + tempOffset;
+    const lowC = profile.baseLowC + tempOffset;
+
+    const highF = Math.round((highC * 9) / 5 + 32);
+    const lowF = Math.round((lowC * 9) / 5 + 32);
+
+    const humidity = 55 + ((seed + d * 7) % 30);
+
+    forecasts.push({
+      date: dateStr,
+      day_number: d + 1,
+      weather: {
+        condition: cond.condition,
+        temp_high_c: highC,
+        temp_low_c: lowC,
+        temp_high_f: highF,
+        temp_low_f: lowF,
+        icon: cond.icon,
+        summary: cond.summary,
+        clothing_tip: cond.clothing_tip,
+        humidity_pct: humidity,
+      }
+    });
+  }
+
+  return {
+    success: true,
+    city: cleanCity,
+    start_date,
+    end_date,
+    forecasts,
+  };
+}

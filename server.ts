@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { runAutonomousTravelPlanner } from './src/services/agentRunner.ts';
-import { search_flights, search_hotels } from './src/services/travelEngine.ts';
+import { search_flights, search_hotels, get_weather_forecast } from './src/services/travelEngine.ts';
 import { AIRPORTS } from './src/data/airports.ts';
 import { PRESET_SCENARIOS } from './src/data/presets.ts';
 
@@ -80,6 +80,24 @@ async function startServer() {
         check_in,
         check_out,
         max_price_per_night: Number(max_price_per_night),
+      });
+      return res.json(data);
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Direct Tool Playground API: get_weather_forecast
+  app.post('/api/tools/get_weather_forecast', (req, res) => {
+    try {
+      const { city, start_date, end_date } = req.body;
+      if (!city || !start_date || !end_date) {
+        return res.status(400).json({ error: 'Missing weather forecast parameters' });
+      }
+      const data = get_weather_forecast({
+        city,
+        start_date,
+        end_date,
       });
       return res.json(data);
     } catch (e: any) {

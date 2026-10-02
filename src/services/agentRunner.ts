@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type, FunctionDeclaration } from '@google/genai';
-import { AgentPlanOutput, AgentTraceStep, SearchFlightsParams, SearchHotelsParams } from '../types.ts';
-import { search_flights, search_hotels } from './travelEngine.ts';
+import { AgentPlanOutput, AgentTraceStep, SearchFlightsParams, SearchHotelsParams, DailyItineraryDay } from '../types.ts';
+import { search_flights, search_hotels, get_weather_forecast } from './travelEngine.ts';
 import { getCityForIata } from '../data/airports.ts';
 
 // Tools definition according to exact specifications
@@ -55,6 +55,29 @@ const searchHotelsTool: FunctionDeclaration = {
       },
     },
     required: ['city', 'check_in', 'check_out', 'max_price_per_night'],
+  },
+};
+
+const getWeatherForecastTool: FunctionDeclaration = {
+  name: 'get_weather_forecast',
+  description: 'Queries live weather forecast and atmospheric conditions for the destination city during travel dates.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      city: {
+        type: Type.STRING,
+        description: 'Destination city name.',
+      },
+      start_date: {
+        type: Type.STRING,
+        description: 'Departure/start date (YYYY-MM-DD).',
+      },
+      end_date: {
+        type: Type.STRING,
+        description: 'Return/end date (YYYY-MM-DD).',
+      },
+    },
+    required: ['city', 'start_date', 'end_date'],
   },
 };
 
@@ -364,9 +387,26 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     };
   }
 
-  // STEP 5: Generate Daily Itinerary and Final JSON Schema
-  // We can enrich the daily itinerary using Gemini if GEMINI_API_KEY is present,
-  // or use our domain-tailored destination itinerary generator for absolute consistency!
+  // STEP 5: Check Gentle Weather Forecast for Travel Dates
+  const weatherResult = get_weather_forecast({
+    city: destCity,
+    start_date: departureDate,
+    end_date: returnDate,
+  });
+
+  addTrace({
+    type: 'weather_forecast',
+    title: '5. Atmospheric Comfort: get_weather_forecast',
+    description: `Queried the local climate and atmospheric conditions for ${destCity} across ${departureDate} to ${returnDate}. Prepared mindful packing tips and gentle weather guidance for each day of your stay.`,
+    details: {
+      tool_name: 'get_weather_forecast',
+      params: { city: destCity, start_date: departureDate, end_date: returnDate },
+      result_summary: `${weatherResult.forecasts.length} daily climate forecasts gathered with care.`,
+    },
+    status: 'completed',
+  });
+
+  // STEP 6: Generate Daily Itinerary and Final JSON Schema
   let dailyItinerary = await generateDailyItinerary({
     city: destCity,
     nights,
@@ -374,6 +414,17 @@ export async function runAutonomousTravelPlanner(req: AgentExecutionRequest): Pr
     hotelName: finalHotel.name,
     flightArrival: finalFlight.arrival_time,
   });
+
+  // Attach weather to each day's itinerary card
+  if (weatherResult.success && weatherResult.forecasts) {
+    dailyItinerary = dailyItinerary.map((day, idx) => {
+      const forecast = weatherResult.forecasts[idx] || weatherResult.forecasts[weatherResult.forecasts.length - 1];
+      return {
+        ...day,
+        weather: forecast?.weather,
+      };
+    });
+  }
 
   const finalOutput: AgentPlanOutput = {
     status: 'success',

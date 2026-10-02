@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Plane, Building, Search, Feather } from 'lucide-react';
-import { FlightOption, HotelOption } from '../types.ts';
+import { Plane, Building, Sun, Search, CloudSun, Shirt, Thermometer, Droplets } from 'lucide-react';
+import { FlightOption, HotelOption, DailyWeatherForecast } from '../types.ts';
 
 export const DirectToolExplorer: React.FC = () => {
-  const [activeTool, setActiveTool] = useState<'flights' | 'hotels'>('flights');
+  const [activeTool, setActiveTool] = useState<'flights' | 'hotels' | 'weather'>('flights');
 
   // Flight Tool State
   const [flightOrigin, setFlightOrigin] = useState('SFO');
@@ -21,6 +21,13 @@ export const DirectToolExplorer: React.FC = () => {
   const [hotelResults, setHotelResults] = useState<HotelOption[]>([]);
   const [hotelMsg, setHotelMsg] = useState<string>('');
   const [hotelLoading, setHotelLoading] = useState(false);
+
+  // Weather Tool State
+  const [weatherCity, setWeatherCity] = useState('Tokyo');
+  const [weatherStart, setWeatherStart] = useState('2026-10-15');
+  const [weatherEnd, setWeatherEnd] = useState('2026-10-20');
+  const [weatherResults, setWeatherResults] = useState<Array<{ date: string; day_number: number; weather: DailyWeatherForecast }>>([]);
+  const [weatherLoading, setWeatherLoading] = useState(false);
 
   const runFlightSearch = async () => {
     setFlightLoading(true);
@@ -74,6 +81,29 @@ export const DirectToolExplorer: React.FC = () => {
     }
   };
 
+  const runWeatherSearch = async () => {
+    setWeatherLoading(true);
+    try {
+      const res = await fetch('/api/tools/get_weather_forecast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          city: weatherCity,
+          start_date: weatherStart,
+          end_date: weatherEnd,
+        }),
+      });
+      const data = await res.json();
+      if (data.forecasts) {
+        setWeatherResults(data.forecasts);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white border border-[#EFECE6] rounded-2xl overflow-hidden shadow-sm">
       {/* Sub Header / Tabs */}
@@ -83,7 +113,7 @@ export const DirectToolExplorer: React.FC = () => {
             Gentle Travel Tools Sandbox
           </h3>
           <p className="text-xs text-[#8C8279] mt-0.5">
-            Query live airline pricing and hotel availability independently to inspect how we discover lovely options.
+            Query live airline pricing, hotel availability, and atmospheric weather forecasts independently.
           </p>
         </div>
 
@@ -106,11 +136,20 @@ export const DirectToolExplorer: React.FC = () => {
             <Building className="w-3.5 h-3.5 text-[#D98880]" />
             search_hotels
           </button>
+          <button
+            onClick={() => setActiveTool('weather')}
+            className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+              activeTool === 'weather' ? 'bg-white text-[#3E3832] shadow-xs font-semibold' : 'text-[#8C8279] hover:text-[#3E3832]'
+            }`}
+          >
+            <Sun className="w-3.5 h-3.5 text-[#D98880]" />
+            get_weather_forecast
+          </button>
         </div>
       </div>
 
       <div className="p-6">
-        {activeTool === 'flights' ? (
+        {activeTool === 'flights' && (
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-5">
               <div>
@@ -161,7 +200,6 @@ export const DirectToolExplorer: React.FC = () => {
               </div>
             </div>
 
-            {/* Results Grid */}
             {flightResults.length > 0 && (
               <div className="space-y-2.5 mt-4">
                 <div className="text-xs font-semibold text-[#8C8279] font-mono">
@@ -193,7 +231,9 @@ export const DirectToolExplorer: React.FC = () => {
               </div>
             )}
           </div>
-        ) : (
+        )}
+
+        {activeTool === 'hotels' && (
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-5">
               <div>
@@ -250,7 +290,6 @@ export const DirectToolExplorer: React.FC = () => {
               </div>
             )}
 
-            {/* Results Grid */}
             {hotelResults.length > 0 && (
               <div className="space-y-2.5 mt-4">
                 <div className="text-xs font-semibold text-[#8C8279] font-mono">
@@ -281,6 +320,90 @@ export const DirectToolExplorer: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTool === 'weather' && (
+          <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+              <div>
+                <label className="block text-xs font-medium text-[#8C8279] mb-1">city</label>
+                <input
+                  type="text"
+                  value={weatherCity}
+                  onChange={(e) => setWeatherCity(e.target.value)}
+                  className="w-full bg-[#F9F6F0] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs text-[#3E3832] focus:outline-none focus:border-[#8A9A86] focus:bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#8C8279] mb-1">start_date</label>
+                <input
+                  type="date"
+                  value={weatherStart}
+                  onChange={(e) => setWeatherStart(e.target.value)}
+                  className="w-full bg-[#F9F6F0] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-mono text-[#3E3832] focus:outline-none focus:border-[#8A9A86] focus:bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#8C8279] mb-1">end_date</label>
+                <input
+                  type="date"
+                  value={weatherEnd}
+                  onChange={(e) => setWeatherEnd(e.target.value)}
+                  className="w-full bg-[#F9F6F0] border border-[#EFECE6] rounded-xl px-3 py-2 text-xs font-mono text-[#3E3832] focus:outline-none focus:border-[#8A9A86] focus:bg-white"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={runWeatherSearch}
+                  disabled={weatherLoading}
+                  className="w-full py-2.5 px-4 text-xs font-semibold text-white bg-[#D98880] hover:bg-[#C8766E] rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  Check Weather Forecast
+                </button>
+              </div>
+            </div>
+
+            {weatherResults.length > 0 && (
+              <div className="space-y-3 mt-4">
+                <div className="text-xs font-semibold text-[#8C8279] font-mono">
+                  Forecasted Climate for {weatherCity} ({weatherResults.length} Days):
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {weatherResults.map((item) => (
+                    <div
+                      key={item.date}
+                      className="bg-[#F9F6F0] border border-[#EFECE6] rounded-xl p-4 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-[#3E3832]">Day {item.day_number}</span>
+                          <span className="text-[11px] text-[#8C8279] font-mono">{item.date}</span>
+                        </div>
+                        <span className="text-xs font-bold font-mono text-[#3E3832]">
+                          {item.weather.temp_high_c}°C / {item.weather.temp_high_f}°F
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-[#73836F] font-medium">
+                        <Sun className="w-3.5 h-3.5 text-[#D98880]" />
+                        <span>{item.weather.condition}</span>
+                        <span className="text-[10px] text-[#8C8279] font-normal ml-auto">
+                          Low: {item.weather.temp_low_c}°C ({item.weather.temp_low_f}°F)
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#8C8279] leading-relaxed">
+                        {item.weather.summary}
+                      </p>
+                      <div className="pt-2 border-t border-[#E8E4DC] flex items-center gap-1.5 text-[11px] text-[#556B52]">
+                        <Shirt className="w-3.5 h-3.5 text-[#8A9A86] shrink-0" />
+                        <span>Tip: {item.weather.clothing_tip}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
