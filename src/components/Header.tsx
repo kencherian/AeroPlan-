@@ -1,13 +1,21 @@
 import React from 'react';
-import { Heart, Sparkles, SlidersHorizontal, Code2, MapPin, Feather } from 'lucide-react';
+import { Heart, Sparkles, SlidersHorizontal, Code2, MapPin, Feather, FileDown, Printer } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'planner' | 'map' | 'tracer' | 'tools' | 'schema';
   onSelectTab: (tab: 'planner' | 'map' | 'tracer' | 'tools' | 'schema') => void;
   onResetToSample: () => void;
+  onExportPdf?: () => void;
+  canExportPdf?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onResetToSample }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  activeTab, 
+  onSelectTab, 
+  onResetToSample,
+  onExportPdf,
+  canExportPdf,
+}) => {
   return (
     <header className="border-b border-[#EFECE6] bg-[#FFFFFF]/90 backdrop-blur-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -80,6 +88,16 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onResetT
 
         {/* Zone 3: Primary Warm Companion Action */}
         <div className="flex items-center gap-2">
+          {canExportPdf && onExportPdf && (
+            <button
+              onClick={onExportPdf}
+              className="px-3.5 py-2 text-xs font-semibold text-white bg-[#7E907B] hover:bg-[#72836F] rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 shadow-2xs"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              Export PDF Report
+            </button>
+          )}
+
           <button
             onClick={onResetToSample}
             className="px-3.5 py-2 text-xs font-medium text-[#3E3832] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all whitespace-nowrap flex items-center gap-2 shadow-xs"

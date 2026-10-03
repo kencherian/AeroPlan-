@@ -15,12 +15,15 @@ import { FailureDeficitCard } from './components/FailureDeficitCard.tsx';
 import { DirectToolExplorer } from './components/DirectToolExplorer.tsx';
 import { SchemaDocumentation } from './components/SchemaDocumentation.tsx';
 import { FlightRouteMap } from './components/FlightRouteMap.tsx';
+import { PrintableReportModal } from './components/PrintableReportModal.tsx';
+import { exportItineraryPdf } from './services/pdfExporter.ts';
 import { AgentExecutionResult, PresetScenario } from './types.ts';
 import { PRESET_SCENARIOS } from './data/presets.ts';
-import { Feather, Heart, Sparkles, Terminal, ArrowRight, Coffee } from 'lucide-react';
+import { Feather, Heart, Sparkles, Terminal, ArrowRight, Coffee, Printer, Download, FileText } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'planner' | 'map' | 'tracer' | 'tools' | 'schema'>('planner');
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   
   // Trip constraint states
   const defaultPreset = PRESET_SCENARIOS[0];
@@ -92,6 +95,8 @@ export default function App() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         onResetToSample={handleResetToSample}
+        onExportPdf={() => setIsPrintModalOpen(true)}
+        canExportPdf={agentResult?.output.status === 'success'}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
@@ -152,14 +157,46 @@ export default function App() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setActiveTab('tracer')}
-                  className="text-xs font-medium text-[#73836F] hover:text-[#556B52] flex items-center gap-1.5 transition-colors whitespace-nowrap"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#D98880]" />
-                  Follow Our Care Trace
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {agentResult.output.status === 'success' && (
+                    <>
+                      <button
+                        onClick={() => {
+                          exportItineraryPdf({
+                            output: agentResult.output,
+                            origin,
+                            destination,
+                            departureDate,
+                            returnDate,
+                          });
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-[#7E907B] hover:bg-[#72836F] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs whitespace-nowrap"
+                        title="Download clean formatted PDF file"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Export PDF Report
+                      </button>
+
+                      <button
+                        onClick={() => setIsPrintModalOpen(true)}
+                        className="px-3 py-1.5 text-xs font-semibold text-[#3E3832] bg-[#F9F6F0] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs whitespace-nowrap"
+                        title="Open clean printable report preview"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-[#8C8279]" />
+                        Printable View
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    onClick={() => setActiveTab('tracer')}
+                    className="text-xs font-medium text-[#73836F] hover:text-[#556B52] flex items-center gap-1.5 transition-colors whitespace-nowrap px-2 py-1"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#D98880]" />
+                    Follow Our Care Trace
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -282,6 +319,18 @@ export default function App() {
           </div>
         </div>
       </footer>
+      {/* Printable Report Modal */}
+      {agentResult && agentResult.output.status === 'success' && (
+        <PrintableReportModal
+          isOpen={isPrintModalOpen}
+          onClose={() => setIsPrintModalOpen(false)}
+          output={agentResult.output}
+          origin={origin}
+          destination={destination}
+          departureDate={departureDate}
+          returnDate={returnDate}
+        />
+      )}
     </div>
   );
 }
