@@ -1,6 +1,18 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Compass, Navigation, Maximize2, Feather, Heart } from 'lucide-react';
+import * as topojson from 'topojson-client';
+import countriesData from 'world-atlas/countries-110m.json';
+import { 
+  Compass, 
+  Navigation, 
+  Maximize2, 
+  Feather, 
+  Heart, 
+  Globe, 
+  Map as MapIcon, 
+  RotateCcw,
+  Sparkles
+} from 'lucide-react';
 import { getCoordinatesForIata, getCityForIata } from '../data/airports.ts';
 
 interface FlightRouteMapProps {
@@ -11,100 +23,23 @@ interface FlightRouteMapProps {
   duration?: string;
 }
 
-const WORLD_CONTINENTS_GEOJSON: any = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      properties: { name: 'North America' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-168, 65], [-160, 71], [-130, 70], [-90, 70], [-60, 60], [-55, 48],
-          [-70, 42], [-75, 35], [-80, 25], [-97, 26], [-90, 15], [-80, 8],
-          [-85, 12], [-105, 20], [-115, 30], [-124, 38], [-125, 48], [-140, 58],
-          [-168, 65]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'South America' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-80, 9], [-60, 10], [-35, -5], [-35, -22], [-55, -35], [-68, -55],
-          [-75, -50], [-72, -35], [-80, -5], [-80, 9]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'Europe' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-10, 36], [0, 43], [5, 44], [-4, 48], [-5, 58], [10, 58], [25, 71],
-          [35, 70], [60, 68], [60, 55], [30, 45], [25, 35], [-5, 36], [-10, 36]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'Africa' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-17, 32], [-5, 36], [12, 37], [32, 31], [50, 12], [42, -5], [35, -25],
-          [20, -35], [12, -20], [8, 5], [-15, 12], [-17, 32]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'Asia' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [35, 40], [60, 55], [60, 68], [170, 66], [140, 50], [130, 35],
-          [120, 22], [105, 10], [100, 2], [80, 10], [70, 25], [50, 25],
-          [40, 30], [35, 40]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'Australia' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [114, -22], [128, -14], [142, -10], [153, -28], [150, -37],
-          [138, -35], [115, -34], [114, -22]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'Japan' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [130, 31], [131, 34], [139, 35], [141, 43], [145, 44], [140, 38], [135, 34], [130, 31]
-        ]]
-      }
-    },
-    {
-      type: 'Feature',
-      properties: { name: 'United Kingdom' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          [-5, 50], [1.5, 52], [0, 58], [-4, 58], [-5, 54], [-5, 50]
-        ]]
-      }
-    }
-  ]
-};
+// Extract full world landmasses and borders from world-atlas
+const worldLandGeoJson: any = topojson.feature(
+  countriesData as any,
+  (countriesData as any).objects.countries
+);
+
+const worldBordersGeoJson: any = topojson.mesh(
+  countriesData as any,
+  (countriesData as any).objects.countries,
+  (a: any, b: any) => a !== b
+);
+
+const worldCoastGeoJson: any = topojson.mesh(
+  countriesData as any,
+  (countriesData as any).objects.countries,
+  (a: any, b: any) => a === b
+);
 
 function calculateDistance(coord1: [number, number], coord2: [number, number]): { km: number; nm: number } {
   const [lon1, lat1] = coord1;
@@ -144,7 +79,9 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [isCentered, setIsCentered] = useState<boolean>(true);
+  const [projectionMode, setProjectionMode] = useState<'globe' | 'panoramic'>('globe');
   const [airplaneProgress, setAirplaneProgress] = useState<number>(0);
+  const [manualRotation, setManualRotation] = useState<[number, number] | null>(null);
 
   const originCoords = useMemo(() => getCoordinatesForIata(originIata), [originIata]);
   const destCoords = useMemo(() => getCoordinatesForIata(destinationIata), [destinationIata]);
@@ -155,6 +92,13 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
   const distance = useMemo(() => calculateDistance(originCoords, destCoords), [originCoords, destCoords]);
   const initialBearing = useMemo(() => calculateBearing(originCoords, destCoords), [originCoords, destCoords]);
 
+  // Compute spherical great-circle midpoint for automatic centering
+  const routeMidpoint = useMemo(() => {
+    const interpolator = d3.geoInterpolate(originCoords, destCoords);
+    return interpolator(0.5);
+  }, [originCoords, destCoords]);
+
+  // Animated airplane along great-circle trajectory
   useEffect(() => {
     let animFrame: number;
     let start = Date.now();
@@ -171,18 +115,58 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
     return () => cancelAnimationFrame(animFrame);
   }, [originIata, destinationIata]);
 
+  // D3 Globe / Map Rendering
   useEffect(() => {
     if (!svgRef.current) return;
 
     const width = 800;
     const height = 380;
+    const cx = width / 2;
+    const cy = height / 2;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    // Map container group
+    // Definitions for soft lighting & gradients
+    const defs = svg.append('defs');
+
+    // Spherical Globe Radial Gradient for subtle 3D depth
+    const globeGrad = defs.append('radialGradient')
+      .attr('id', 'globe-shading')
+      .attr('cx', '48%')
+      .attr('cy', '45%')
+      .attr('r', '60%');
+
+    globeGrad.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', '#FAF7F1');
+
+    globeGrad.append('stop')
+      .attr('offset', '70%')
+      .attr('stop-color', '#F3ECE0');
+
+    globeGrad.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', '#E8DFD0');
+
+    // Soft drop shadow for the globe sphere
+    const shadowFilter = defs.append('filter')
+      .attr('id', 'globe-shadow')
+      .attr('x', '-20%')
+      .attr('y', '-20%')
+      .attr('width', '140%')
+      .attr('height', '140%');
+
+    shadowFilter.append('feDropShadow')
+      .attr('dx', '0')
+      .attr('dy', '4')
+      .attr('stdDeviation', '6')
+      .attr('flood-color', '#3E3832')
+      .attr('flood-opacity', '0.07');
+
     const g = svg.append('g');
 
+    // GeoJSON Great Circle line
     const lineFeature: any = {
       type: 'Feature',
       geometry: {
@@ -191,78 +175,168 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
       }
     };
 
-    const lon1 = originCoords[0];
-    const lon2 = destCoords[0];
-    let centerLon = (lon1 + lon2) / 2;
-    if (Math.abs(lon1 - lon2) > 180) {
-      centerLon = (centerLon + 180) % 360;
-    }
+    // Center coordinates
+    const targetLon = manualRotation ? manualRotation[0] : -routeMidpoint[0];
+    const targetLat = manualRotation ? manualRotation[1] : -routeMidpoint[1];
 
-    const projection = d3.geoNaturalEarth1()
-      .scale(isCentered ? 165 : 130)
-      .rotate([-centerLon, 0, 0])
-      .translate([width / 2, height / 2]);
+    // Projection selection
+    let projection: d3.GeoProjection;
+    let globeRadius = isCentered ? 165 : 138;
+
+    if (projectionMode === 'globe') {
+      projection = d3.geoOrthographic()
+        .scale(globeRadius)
+        .translate([cx, cy])
+        .rotate([targetLon, targetLat, 0])
+        .clipAngle(90);
+    } else {
+      projection = d3.geoNaturalEarth1()
+        .scale(isCentered ? 165 : 130)
+        .translate([cx, cy])
+        .rotate([targetLon, 0, 0]);
+    }
 
     const pathGenerator = d3.geoPath().projection(projection);
 
-    // Warm parchment ocean background
+    // Interactive Drag to Rotate Globe
+    const dragBehavior = d3.drag<SVGSVGElement, unknown>()
+      .on('drag', (event) => {
+        if (projectionMode !== 'globe') return;
+        const currentRotate = projection.rotate();
+        const sensitivity = 0.35;
+        const newLon = currentRotate[0] + event.dx * sensitivity;
+        const newLat = Math.max(-80, Math.min(80, currentRotate[1] - event.dy * sensitivity));
+        setManualRotation([newLon, newLat]);
+      });
+
+    svg.call(dragBehavior as any);
+
+    // Background Canvas Rectangle
     g.append('rect')
       .attr('width', width)
       .attr('height', height)
-      .attr('fill', '#F4EFE6');
+      .attr('fill', '#F7F3EC');
 
-    // Soft graticule
+    // 1. Globe Horizon Disc & Atmospheric Aura (when in Globe mode)
+    if (projectionMode === 'globe') {
+      // Outer Atmospheric Halo Ring
+      g.append('circle')
+        .attr('cx', cx)
+        .attr('cy', cy)
+        .attr('r', globeRadius + 6)
+        .attr('fill', 'none')
+        .attr('stroke', '#E7DFD2')
+        .attr('stroke-width', 2.5)
+        .attr('opacity', 0.85);
+
+      // Primary Globe Sphere Body (Sea & Horizon)
+      g.append('path')
+        .datum({ type: 'Sphere' })
+        .attr('d', pathGenerator as any)
+        .attr('fill', 'url(#globe-shading)')
+        .attr('stroke', '#D9D0C1')
+        .attr('stroke-width', 1.2)
+        .attr('filter', 'url(#globe-shadow)');
+    } else {
+      // Panoramic Map Ocean Fill
+      g.append('path')
+        .datum({ type: 'Sphere' })
+        .attr('d', pathGenerator as any)
+        .attr('fill', '#FAF6EE')
+        .attr('stroke', '#DFD8CC')
+        .attr('stroke-width', 1);
+    }
+
+    // 2. Graticules (Lat/Long spherical grid)
     const graticule = d3.geoGraticule10();
     g.append('path')
       .datum(graticule)
-      .attr('d', pathGenerator)
+      .attr('d', pathGenerator as any)
       .attr('fill', 'none')
       .attr('stroke', '#E2DCD1')
-      .attr('stroke-width', 0.6)
-      .attr('stroke-dasharray', '2,4');
+      .attr('stroke-width', 0.5)
+      .attr('stroke-dasharray', '2,4')
+      .attr('opacity', 0.7);
 
-    // Continents in warm sand/linen
-    g.append('g')
-      .selectAll('path')
-      .data(WORLD_CONTINENTS_GEOJSON.features)
-      .enter()
-      .append('path')
+    // 3. Stylized World Map Landmass Fills (Muted, minimalist, warm linen)
+    g.append('path')
+      .datum(worldLandGeoJson)
       .attr('d', pathGenerator as any)
-      .attr('fill', '#E7E0D3')
-      .attr('stroke', '#D8D0C2')
-      .attr('stroke-width', 0.8);
+      .attr('fill', '#E5DEC0')
+      .attr('opacity', 0.95);
 
-    // Warm terracotta Great Circle Arc
+    // 4. Subtle Country Vector Borders
+    g.append('path')
+      .datum(worldBordersGeoJson)
+      .attr('d', pathGenerator as any)
+      .attr('fill', 'none')
+      .attr('stroke', '#D7CFBE')
+      .attr('stroke-width', 0.45)
+      .attr('stroke-dasharray', '1.5,2.5')
+      .attr('opacity', 0.75);
+
+    // 5. Delicate Land Coastlines
+    g.append('path')
+      .datum(worldCoastGeoJson)
+      .attr('d', pathGenerator as any)
+      .attr('fill', 'none')
+      .attr('stroke', '#CCC2B0')
+      .attr('stroke-width', 0.75)
+      .attr('opacity', 0.95);
+
+    // 6. Spherical Horizon Rim Highlight (Globe mode)
+    if (projectionMode === 'globe') {
+      g.append('path')
+        .datum({ type: 'Sphere' })
+        .attr('d', pathGenerator as any)
+        .attr('fill', 'none')
+        .attr('stroke', '#C8BFB0')
+        .attr('stroke-width', 1);
+    }
+
+    // 7. Great Circle Geodesic Flight Path
+    // Soft Peach Glow Underlay
     g.append('path')
       .datum(lineFeature)
-      .attr('d', pathGenerator)
+      .attr('d', pathGenerator as any)
       .attr('fill', 'none')
       .attr('stroke', '#E0A996')
-      .attr('stroke-width', 5)
-      .attr('opacity', 0.4)
+      .attr('stroke-width', 6)
+      .attr('opacity', 0.35)
       .attr('stroke-linecap', 'round');
 
+    // Dashed Terracotta Flight Arc
     g.append('path')
       .datum(lineFeature)
-      .attr('d', pathGenerator)
+      .attr('d', pathGenerator as any)
       .attr('fill', 'none')
       .attr('stroke', '#C8766E')
-      .attr('stroke-width', 2.2)
+      .attr('stroke-width', 2.4)
       .attr('stroke-dasharray', '5,4')
       .attr('stroke-linecap', 'round');
+
+    // Check visibility on the visible hemisphere for Orthographic projection
+    const centerPoint: [number, number] = [-targetLon, -targetLat];
+    const isVisibleOnGlobe = (coord: [number, number]) => {
+      if (projectionMode !== 'globe') return true;
+      const dist = d3.geoDistance(coord, centerPoint);
+      return dist <= Math.PI / 2 + 0.05; // visible hemisphere
+    };
 
     const pOrigin = projection(originCoords);
     const pDest = projection(destCoords);
 
-    if (pOrigin && pDest) {
-      // Origin Point
+    // 8. Origin Marker (SFO)
+    if (pOrigin && isVisibleOnGlobe(originCoords)) {
+      // Pulse animation ring
       g.append('circle')
         .attr('cx', pOrigin[0])
         .attr('cy', pOrigin[1])
-        .attr('r', 8)
+        .attr('r', 8.5)
         .attr('fill', '#8A9A86')
         .attr('opacity', 0.25);
 
+      // Core dot
       g.append('circle')
         .attr('cx', pOrigin[0])
         .attr('cy', pOrigin[1])
@@ -271,14 +345,44 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
         .attr('stroke', '#FFFFFF')
         .attr('stroke-width', 1.5);
 
-      // Destination Point
+      // Label background pill
+      const labelW = 34;
+      const labelH = 17;
+      const lx = pOrigin[0] - labelW / 2;
+      const ly = pOrigin[1] - 22;
+
+      g.append('rect')
+        .attr('x', lx)
+        .attr('y', ly)
+        .attr('width', labelW)
+        .attr('height', labelH)
+        .attr('rx', 4)
+        .attr('fill', 'rgba(255, 255, 255, 0.95)')
+        .attr('stroke', '#E8E2D7')
+        .attr('stroke-width', 0.8);
+
+      g.append('text')
+        .attr('x', pOrigin[0])
+        .attr('y', ly + 12)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#3E3832')
+        .attr('font-size', '10.5px')
+        .attr('font-weight', '700')
+        .attr('font-family', 'JetBrains Mono, monospace')
+        .text(originIata);
+    }
+
+    // 9. Destination Marker (HND)
+    if (pDest && isVisibleOnGlobe(destCoords)) {
+      // Pulse animation ring
       g.append('circle')
         .attr('cx', pDest[0])
         .attr('cy', pDest[1])
-        .attr('r', 8)
+        .attr('r', 8.5)
         .attr('fill', '#D98880')
         .attr('opacity', 0.25);
 
+      // Core dot
       g.append('circle')
         .attr('cx', pDest[0])
         .attr('cy', pDest[1])
@@ -287,33 +391,40 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
         .attr('stroke', '#FFFFFF')
         .attr('stroke-width', 1.5);
 
-      // Labels
-      g.append('text')
-        .attr('x', pOrigin[0])
-        .attr('y', pOrigin[1] - 10)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#3E3832')
-        .attr('font-size', '11px')
-        .attr('font-weight', '600')
-        .attr('font-family', 'JetBrains Mono, monospace')
-        .text(originIata);
+      // Label background pill
+      const labelW = 34;
+      const labelH = 17;
+      const lx = pDest[0] - labelW / 2;
+      const ly = pDest[1] - 22;
+
+      g.append('rect')
+        .attr('x', lx)
+        .attr('y', ly)
+        .attr('width', labelW)
+        .attr('height', labelH)
+        .attr('rx', 4)
+        .attr('fill', 'rgba(255, 255, 255, 0.95)')
+        .attr('stroke', '#E8E2D7')
+        .attr('stroke-width', 0.8);
 
       g.append('text')
         .attr('x', pDest[0])
-        .attr('y', pDest[1] - 10)
+        .attr('y', ly + 12)
         .attr('text-anchor', 'middle')
         .attr('fill', '#C8766E')
-        .attr('font-size', '11px')
-        .attr('font-weight', '600')
+        .attr('font-size', '10.5px')
+        .attr('font-weight', '700')
         .attr('font-family', 'JetBrains Mono, monospace')
         .text(destinationIata);
+    }
 
-      // Plane icon
-      const interpolator = d3.geoInterpolate(originCoords, destCoords);
-      const curCoord = interpolator(airplaneProgress);
+    // 10. Animated Airplane along Great Circle Path
+    const interpolator = d3.geoInterpolate(originCoords, destCoords);
+    const curCoord = interpolator(airplaneProgress);
+
+    if (isVisibleOnGlobe(curCoord)) {
       const pCurrent = projection(curCoord);
-
-      const nextCoord = interpolator(Math.min(1, airplaneProgress + 0.02));
+      const nextCoord = interpolator(Math.min(1, airplaneProgress + 0.015));
       const pNext = projection(nextCoord);
 
       let angle = 0;
@@ -327,26 +438,42 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
         const planeGroup = g.append('g')
           .attr('transform', `translate(${pCurrent[0]}, ${pCurrent[1]}) rotate(${angle})`);
 
-        planeGroup.append('path')
-          .attr('d', 'M0,-5 L7,5 L0,3 L-7,5 Z')
-          .attr('fill', '#FFFFFF')
-          .attr('stroke', '#C8766E')
-          .attr('stroke-width', 1.2);
-
+        // Radar ping ring
         planeGroup.append('circle')
-          .attr('r', 9)
+          .attr('r', 10)
           .attr('fill', 'none')
           .attr('stroke', '#D98880')
-          .attr('stroke-width', 1)
-          .attr('opacity', 0.5);
+          .attr('stroke-width', 0.9)
+          .attr('opacity', 0.45);
+
+        // Airplane SVG glyph
+        planeGroup.append('path')
+          .attr('d', 'M0,-6 L8,6 L0,3.5 L-8,6 Z')
+          .attr('fill', '#FFFFFF')
+          .attr('stroke', '#C8766E')
+          .attr('stroke-width', 1.3);
       }
     }
-  }, [originCoords, destCoords, originIata, destinationIata, isCentered, airplaneProgress]);
+  }, [
+    originCoords,
+    destCoords,
+    originIata,
+    destinationIata,
+    isCentered,
+    projectionMode,
+    airplaneProgress,
+    manualRotation,
+    routeMidpoint
+  ]);
+
+  const handleResetRotation = () => {
+    setManualRotation(null);
+  };
 
   return (
     <div className="bg-white border border-[#EFECE6] rounded-2xl overflow-hidden shadow-sm">
       {/* Map Header */}
-      <div className="px-6 py-4 border-b border-[#EFECE6] bg-[#FDFCF9] flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-[#EFECE6] bg-[#FDFCF9] flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Feather className="w-4 h-4 text-[#73836F]" />
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8C8279]">
@@ -354,8 +481,8 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
           </h3>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-[#8C8279]">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="hidden lg:flex items-center gap-4 text-xs font-mono text-[#8C8279]">
             <span>
               Distance: <strong className="text-[#3E3832] tabular-nums">{distance.km.toLocaleString()} km</strong> ({distance.nm.toLocaleString()} nm)
             </span>
@@ -365,9 +492,51 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
             </span>
           </div>
 
+          {/* Perspective Selector Pills */}
+          <div className="flex items-center gap-1 bg-[#F7F4EF] p-1 rounded-xl border border-[#E8E4DC]">
+            <button
+              onClick={() => setProjectionMode('globe')}
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                projectionMode === 'globe'
+                  ? 'bg-white text-[#3E3832] shadow-xs font-semibold'
+                  : 'text-[#8C8279] hover:text-[#3E3832]'
+              }`}
+              title="3D Spherical Globe Perspective"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#73836F]" />
+              <span>Spherical Globe</span>
+            </button>
+
+            <button
+              onClick={() => setProjectionMode('panoramic')}
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                projectionMode === 'panoramic'
+                  ? 'bg-white text-[#3E3832] shadow-xs font-semibold'
+                  : 'text-[#8C8279] hover:text-[#3E3832]'
+              }`}
+              title="2D Panoramic Map Perspective"
+            >
+              <MapIcon className="w-3.5 h-3.5 text-[#D98880]" />
+              <span>Panoramic Map</span>
+            </button>
+          </div>
+
+          {/* Reset / Center Button */}
+          {manualRotation && projectionMode === 'globe' && (
+            <button
+              onClick={handleResetRotation}
+              className="px-2.5 py-1 text-xs font-medium text-[#73836F] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1 shadow-2xs"
+              title="Reset Globe to SFO-HND Route Center"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Recenter</span>
+            </button>
+          )}
+
+          {/* Zoom Toggle */}
           <button
             onClick={() => setIsCentered(!isCentered)}
-            className="px-3 py-1.5 text-xs font-medium text-[#3E3832] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
+            className="px-3 py-1 text-xs font-medium text-[#3E3832] bg-[#F7F4EF] hover:bg-[#EFECE6] border border-[#E8E4DC] rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
             title="Toggle projection zoom view"
           >
             <Maximize2 className="w-3.5 h-3.5" />
@@ -376,16 +545,16 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
         </div>
       </div>
 
-      {/* SVG Canvas */}
-      <div className="relative bg-[#F4EFE6] flex items-center justify-center p-2 overflow-hidden">
+      {/* SVG Canvas Container */}
+      <div className="relative bg-[#F7F3EC] flex items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing">
         <svg
           ref={svgRef}
           viewBox="0 0 800 380"
-          className="w-full h-auto max-h-[340px] select-none rounded-xl"
+          className="w-full h-auto max-h-[350px] select-none rounded-xl"
         />
 
         {/* Flight Badge Floating Overlay */}
-        <div className="absolute top-4 left-4 bg-white/95 border border-[#EFECE6] backdrop-blur-md rounded-xl p-3 shadow-md text-xs space-y-1 font-mono">
+        <div className="absolute top-4 left-4 bg-white/95 border border-[#EFECE6] backdrop-blur-md rounded-xl p-3 shadow-md text-xs space-y-1 font-mono pointer-events-none">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#8A9A86] animate-pulse" />
             <span className="font-semibold text-[#3E3832]">
@@ -404,8 +573,16 @@ export const FlightRouteMap: React.FC<FlightRouteMapProps> = ({
           )}
         </div>
 
+        {/* Drag Hint (When in globe mode) */}
+        {projectionMode === 'globe' && !manualRotation && (
+          <div className="hidden sm:flex absolute bottom-3 left-4 bg-white/80 border border-[#EFECE6] backdrop-blur-xs rounded-lg px-2.5 py-1 text-[10px] font-mono text-[#8C8279] pointer-events-none items-center gap-1.5">
+            <Globe className="w-3 h-3 text-[#73836F]" />
+            <span>Interactive 3D Globe · Drag to gently spin</span>
+          </div>
+        )}
+
         {/* Legend */}
-        <div className="absolute bottom-3 right-4 bg-white/90 border border-[#EFECE6] backdrop-blur-sm rounded-xl px-3 py-1.5 text-[10px] font-mono text-[#8C8279] flex items-center gap-3 shadow-xs">
+        <div className="absolute bottom-3 right-4 bg-white/90 border border-[#EFECE6] backdrop-blur-sm rounded-xl px-3 py-1.5 text-[10px] font-mono text-[#8C8279] flex items-center gap-3 shadow-xs pointer-events-none">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#73836F] inline-block" />
             <span>Origin ({originIata})</span>
